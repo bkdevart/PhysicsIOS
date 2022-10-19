@@ -34,18 +34,20 @@ class GameScene: SKScene {
 
 
 struct ContentView: View {
+    /*
+     May have to read https://github.com/joshuajhomann/SwiftUI-Spirograph to get combine to work with geometry reader to get proper scene.size set (hardcoded to iPhone 13 pro right now)
+     */
     
-
         var scene: SKScene {
             let scene = GameScene()
-            scene.size = CGSize(width: 256, height: 256)
+            scene.size = CGSize(width: 1170, height: 2532)
             scene.scaleMode = .fill
             return scene
         }
 
         var body: some View {
             SpriteView(scene: scene)
-                .frame(width: 256, height: 256)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea()
         }
 }
