@@ -23,8 +23,10 @@ extension Color {
 
 // TODO: using this to track box size and color selection
 class JointQ: ObservableObject {
-  @Published var runner = false
-  static var shared = JointQ()
+//    @Published var runner = false
+    @Published var size = 120.0
+
+    static var shared = JointQ()
 }
 
 class GameScene: SKScene {
@@ -42,9 +44,11 @@ class GameScene: SKScene {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
-        // for fun, make box size random between 40 and 120
-        let boxWidth = Int.random(in: 40..<240)
-        let boxHeight = Int.random(in: 40..<240)
+        // for fun, make box size random between 40 and 240
+        let boxWidth = Int(kickoff.size)
+        let boxHeight = Int(kickoff.size)
+//        let boxWidth = Int.random(in: 40..<240)
+//        let boxHeight = Int.random(in: 40..<240)
         // make color random as well
         let randomColor: Color = .random
         let box = SKSpriteNode(color: UIColor(randomColor), size: CGSize(width: boxWidth, height: boxHeight))
@@ -101,7 +105,7 @@ struct ContentView: View {
                                     .padding([.horizontal, .bottom])
                     // TODO: using this to track box size and color selection
                     Button {
-                      door3.runner = true
+                      door3.size = distance
                     } label: {
                       Text("jump")
                     }
