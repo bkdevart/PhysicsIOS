@@ -13,7 +13,7 @@ struct PhysicsTestApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(value: .constant(Int(120)))
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }

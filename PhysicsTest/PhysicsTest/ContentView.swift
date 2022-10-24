@@ -22,16 +22,15 @@ extension Color {
 }
 
 // TODO: using this to track box size and color selection
-class JointQ: ObservableObject {
-//    @Published var runner = false
+class UIJoin: ObservableObject {
     @Published var size = 120.0
 
-    static var shared = JointQ()
+    static var shared = UIJoin()
 }
 
 class GameScene: SKScene {
     // TODO: using this to track box size and color selection
-    @ObservedObject var kickoff = JointQ.shared
+    @ObservedObject var kickoff = UIJoin.shared
     
     override func didMove(to view: SKView) {
         physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
@@ -44,12 +43,10 @@ class GameScene: SKScene {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
-        // for fun, make box size random between 40 and 240
+        // make box size between 40 and 240 (based on slider)
         let boxWidth = Int(kickoff.size)
         let boxHeight = Int(kickoff.size)
-//        let boxWidth = Int.random(in: 40..<240)
-//        let boxHeight = Int.random(in: 40..<240)
-        // make color random as well
+        // make color random as well (based on slider)
         let randomColor: Color = .random
         let box = SKSpriteNode(color: UIColor(randomColor), size: CGSize(width: boxWidth, height: boxHeight))
         box.position = location
@@ -69,56 +66,50 @@ struct ContentView: View {
     @State private var maxHeight = 2532
     @State private var maxWidth = 1170
     
-    // TODO: using this to track box size and color selection
-    let door3 = JointQ.shared
+    // using this to track box size and color selection
+    let boxConfig = UIJoin.shared
     
-        var scene: SKScene {
-            let scene = GameScene()
-            // temporary workaround until dynamic sizing performed
+    @Binding var value: Int
+//    let hintKey: String
+    @State private var sliderValue: Double = 0.0
+    
+    var scene: SKScene {
+        let scene = GameScene()
+        // temporary workaround until dynamic sizing performed
 
-            scene.size = CGSize(width: maxWidth, height: maxHeight)
-            scene.scaleMode = .fill
-            return scene
-        }
+        scene.size = CGSize(width: maxWidth, height: maxHeight)
+        scene.scaleMode = .fill
+        return scene
+    }
 
-        var body: some View {
-            Group {
-                
-                VStack {
-                    SpriteView(scene: scene)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .ignoresSafeArea()
-                    Spacer()
-                    Text("Box Size")
-                    /*
-                     https://stackoverflow.com/questions/66503964/passing-data-from-spritekit-scene-back-to-swiftui
-                     or possibly Combine Framework
-                     https://developer.algorand.org/tutorials/developing-2d-games-using-spritekit-and-swiftui-part-1/#4-spritekit-game-overview
-                     or other methods
-                     https://betterprogramming.pub/7-ways-to-link-swiftui-views-to-spritekit-scene-58180a57ab58
-                     */
-                    
-                    Slider(value: $distance, in: 1...240, step: 1)
-                                    .padding([.horizontal, .bottom])
-                    Text("Color")
-                    Slider(value: $color, in: 0...1, step: 0.01)
-                                    .padding([.horizontal, .bottom])
-                    // TODO: using this to track box size and color selection
-                    Button {
-                      door3.size = distance
-                    } label: {
-                      Text("jump")
-                    }
-                }
-                
-            }
+    var body: some View {
+        Group {
             
+            VStack {
+                SpriteView(scene: scene)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea()
+                Spacer()
+                Text("Box Size")
+                Slider(value: $distance, in: 1...240, step: 1)
+                                .padding([.horizontal, .bottom])
+                                .onChange(of: distance, perform: sliderChanged)
+                Text("Color")
+                Slider(value: $color, in: 0...1, step: 0.01)
+                                .padding([.horizontal, .bottom])
+            }
         }
+    }
+    
+    private func sliderChanged(to newValue: Double) {
+        distance = Double(newValue.rounded())
+        boxConfig.size = distance
+    }
 }
 
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+        ContentView(value: .constant(Int(120))).environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
     }
 }
