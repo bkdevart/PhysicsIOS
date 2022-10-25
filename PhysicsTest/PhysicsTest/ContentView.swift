@@ -13,26 +13,17 @@ import SwiftUI
 import CoreData
 import SpriteKit
 
-extension Color {
-    static var random: Color {
-        return Color(red: .random(in: 0...1),
-                     green: .random(in: 0...1),
-                     blue: .random(in: 0...1))
-    }
-}
-
-// TODO: using this to track box size and color selection
+// using this to track box size and color selection across views
 class UIJoin: ObservableObject {
     @Published var size = 120.0
-    @Published var r = 0.5
-    @Published var g = 0.5
-    @Published var b = 0.5
+    @Published var r = 0.34
+    @Published var g = 0.74
+    @Published var b = 0.7
 
     static var shared = UIJoin()
 }
 
 class GameScene: SKScene {
-    // TODO: using this to track box size and color selection
     @ObservedObject var controls = UIJoin.shared
     
     override func didMove(to view: SKView) {
@@ -49,31 +40,35 @@ class GameScene: SKScene {
         // make box size between 40 and 240 (based on slider)
         let boxWidth = Int(controls.size)
         let boxHeight = Int(controls.size)
-        // TODO: make color random as well (based on slider)
-        let randomColor: Color = .random
-        let box = SKSpriteNode(color: UIColor(randomColor), size: CGSize(width: boxWidth, height: boxHeight))
+        // make color betwen 0 and 1 (based on slider)
+        let chosenColor: Color = Color(red: controls.r,
+                                       green: controls.g,
+                                       blue: controls.b)
+        let box = SKSpriteNode(color: UIColor(chosenColor), size: CGSize(width: boxWidth, height: boxHeight))
         box.position = location
         // see if this causes gravity effect to take hold
         box.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: boxWidth, height: boxHeight))
         addChild(box)
+        print("boxWidth & boxHeight: \(boxWidth), r:  \(controls.r), g:  \(controls.g), b:  \(controls.b)")
     }
 }
 
 
 struct ContentView: View {
+    // default box/color values - these are initialized in UIJoin (may not need values?)
+    @State private var distance = 120.0
+    @State private var r = 0.34
+    @State private var g = 0.74
+    @State private var b = 0.7
+    
+    // using this to track box size and color selection as it changes
+    let boxConfig = UIJoin.shared
+    
     /*
      May have to read https://github.com/joshuajhomann/SwiftUI-Spirograph to get combine to work with geometry reader to get proper scene.size set (hardcoded to iPhone 13 pro right now)
      */
-    @State private var distance = 120.0
-    @State private var color = 0.5
     @State private var maxHeight = 2532
     @State private var maxWidth = 1170
-    
-    // using this to track box size and color selection
-    let boxConfig = UIJoin.shared
-    
-    @Binding var value: Int
-    @State private var sliderValue: Double = 0.0
     
     var scene: SKScene {
         let scene = GameScene()
@@ -84,54 +79,75 @@ struct ContentView: View {
     }
 
     var body: some View {
-        Group {
-            VStack {
-                // TODO: find a way to use Geometry Reader to dynamically fit and keep correct ratio for boxes
-                SpriteView(scene: scene)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .ignoresSafeArea()
-                Spacer()
-                HStack {
-                    VStack {
-                        Text("Box Size")
-                        Slider(value: $distance, in: 1...240, step: 1)
-                                        .padding([.horizontal, .bottom])
-                                        .onChange(of: distance, perform: sliderChanged)
-                    }
-                    VStack {
-                        HStack {
-                            Text("Color")
-                        }
-                        HStack {
-                            Text("R")
-                            Slider(value: $color, in: 0...1, step: 0.01)
+        NavigationView {
+            Group {
+                VStack {
+                    // TODO: find a way to use Geometry Reader to dynamically fit and keep correct ratio for boxes
+                    SpriteView(scene: scene)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .ignoresSafeArea()
+                    Spacer()
+                    HStack {
+                        VStack {
+                            Text("Box Size")
+                            Slider(value: $distance, in: 1...240, step: 1)
                                             .padding([.horizontal, .bottom])
+                                            .onChange(of: distance, perform: sliderBoxSizeChanged)
+                            // button to show different information here (user color settings, size settings)
+                            NavigationLink("Object Info", destination: ObjectSettings())
+                            // centerCoordinate: $centerCoordinate, locations: $locations, selectedPlace: $selectedPlace, showingPlaceDetails: $showingPlaceDetails, showingEditScreen: $showingEditScreen)
+                            // TODO: add preview of square below size slider so user can see color being dropped (just color fo now, size later)
                         }
-                        HStack {
-                            Text("G")
-                            Slider(value: $color, in: 0...1, step: 0.01)
-                                            .padding([.horizontal, .bottom])
-                        }
-                        HStack {
-                            Text("B")
-                            Slider(value: $color, in: 0...1, step: 0.01)
-                                            .padding([.horizontal, .bottom])
+                        VStack {
+                            HStack {
+                                Text("Color")
+                            }
+                            HStack {
+                                Text("R")
+                                Slider(value: $r, in: 0...1, step: 0.01)
+                                                .padding([.horizontal, .bottom])
+                                                .onChange(of: r, perform: sliderColorRChanged)
+                            }
+                            HStack {
+                                Text("G")
+                                Slider(value: $g, in: 0...1, step: 0.01)
+                                                .padding([.horizontal, .bottom])
+                                                .onChange(of: g, perform: sliderColorGChanged)
+                            }
+                            HStack {
+                                Text("B")
+                                Slider(value: $b, in: 0...1, step: 0.01)
+                                                .padding([.horizontal, .bottom])
+                                                .onChange(of: b, perform: sliderColorBChanged)
+                            }
                         }
                     }
                 }
             }
         }
+        
     }
     
-    private func sliderChanged(to newValue: Double) {
-        distance = Double(newValue.rounded())
-        boxConfig.size = distance
+    private func sliderColorRChanged(to newValue: Double) {
+        boxConfig.r = newValue
+    }
+    
+    private func sliderColorGChanged(to newValue: Double) {
+        boxConfig.g = newValue
+    }
+    
+    private func sliderColorBChanged(to newValue: Double) {
+        boxConfig.b = newValue
+    }
+    
+    private func sliderBoxSizeChanged(to newValue: Double) {
+        boxConfig.size = Double(newValue.rounded())
     }
 }
 
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView(value: .constant(Int(120))).environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+        ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
     }
 }

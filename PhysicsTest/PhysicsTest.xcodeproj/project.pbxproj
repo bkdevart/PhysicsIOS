@@ -13,6 +13,7 @@
 		CA27B0A128FF6FD2007754FF /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CA27B0A028FF6FD2007754FF /* Preview Assets.xcassets */; };
 		CA27B0A328FF6FD2007754FF /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA27B0A228FF6FD2007754FF /* Persistence.swift */; };
 		CA27B0A628FF6FD2007754FF /* PhysicsTest.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = CA27B0A428FF6FD2007754FF /* PhysicsTest.xcdatamodeld */; };
+		CACE7C4729089704008A3F07 /* ObjectSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE7C4629089704008A3F07 /* ObjectSettings.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,6 +24,7 @@
 		CA27B0A028FF6FD2007754FF /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		CA27B0A228FF6FD2007754FF /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		CA27B0A528FF6FD2007754FF /* PhysicsTest.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = PhysicsTest.xcdatamodel; sourceTree = "<group>"; };
+		CACE7C4629089704008A3F07 /* ObjectSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectSettings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,6 +57,7 @@
 		CA27B09828FF6FD1007754FF /* PhysicsTest */ = {
 			isa = PBXGroup;
 			children = (
+				CACE7C4629089704008A3F07 /* ObjectSettings.swift */,
 				CA27B09928FF6FD1007754FF /* PhysicsTestApp.swift */,
 				CA27B09B28FF6FD1007754FF /* ContentView.swift */,
 				CA27B09D28FF6FD2007754FF /* Assets.xcassets */,
@@ -147,6 +150,7 @@
 				CA27B09C28FF6FD1007754FF /* ContentView.swift in Sources */,
 				CA27B09A28FF6FD1007754FF /* PhysicsTestApp.swift in Sources */,
 				CA27B0A628FF6FD2007754FF /* PhysicsTest.xcdatamodeld in Sources */,
+				CACE7C4729089704008A3F07 /* ObjectSettings.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
