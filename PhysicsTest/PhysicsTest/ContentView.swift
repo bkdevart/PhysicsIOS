@@ -19,6 +19,7 @@ class UIJoin: ObservableObject {
     @Published var r = 0.34
     @Published var g = 0.74
     @Published var b = 0.7
+    @Published var isBox = true
 
     static var shared = UIJoin()
 }
@@ -38,18 +39,36 @@ class GameScene: SKScene {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
         // make box size between 40 and 240 (based on slider)
+        // TODO: make this so user can choose height and width
         let boxWidth = Int(controls.size)
         let boxHeight = Int(controls.size)
         // make color betwen 0 and 1 (based on slider)
         let chosenColor: Color = Color(red: controls.r,
                                        green: controls.g,
                                        blue: controls.b)
-        let box = SKSpriteNode(color: UIColor(chosenColor), size: CGSize(width: boxWidth, height: boxHeight))
-        box.position = location
-        // see if this causes gravity effect to take hold
-        box.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: boxWidth, height: boxHeight))
-        addChild(box)
-        print("boxWidth & boxHeight: \(boxWidth), r:  \(controls.r), g:  \(controls.g), b:  \(controls.b)")
+        // TODO: add triangle as option
+        if (controls.isBox) {
+            let box = SKSpriteNode(color: UIColor(chosenColor), size: CGSize(width: boxWidth, height: boxHeight))
+            box.position = location
+            // see if this causes gravity effect to take hold
+            box.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: boxWidth, height: boxHeight))
+            addChild(box)
+        } else {
+            let path = CGMutablePath()
+            path.addArc(center: CGPoint.zero,
+                        radius: controls.size / 2,
+                        startAngle: 0,
+                        endAngle: CGFloat.pi * 2,
+                        clockwise: true)
+            let ball = SKShapeNode(path: path)
+            ball.fillColor = UIColor(chosenColor)
+            ball.strokeColor = UIColor(chosenColor)
+            ball.position = location
+            ball.physicsBody = SKPhysicsBody(circleOfRadius: controls.size / 2)
+            addChild(ball)
+        }
+        
+        print("object height/width: \(boxWidth), r:  \(controls.r), g:  \(controls.g), b:  \(controls.b)")
     }
 }
 
@@ -60,9 +79,10 @@ struct ContentView: View {
     @State private var r = 0.34
     @State private var g = 0.74
     @State private var b = 0.7
+    @State private var isBox = true
     
     // using this to track box size and color selection as it changes
-    let boxConfig = UIJoin.shared
+    let shapeConfig = UIJoin.shared
     
     /*
      May have to read https://github.com/joshuajhomann/SwiftUI-Spirograph to get combine to work with geometry reader to get proper scene.size set (hardcoded to iPhone 13 pro right now)
@@ -87,14 +107,18 @@ struct ContentView: View {
                     SpriteView(scene: scene)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .ignoresSafeArea()
-                    Spacer()
                     HStack {
                         VStack {
-                            Text("Box Size")
+                            Text(isBox ? "Box Size" : "Circle Size")
                             Slider(value: $distance, in: 40...240, step: 1)
                                             .padding([.horizontal, .bottom])
                                             .onChange(of: distance, perform: sliderBoxSizeChanged)
                             // shows different information here (user color settings, size settings)
+                            Toggle(isOn: $isBox) {
+                                Text("Shape")
+                            }
+                            .onChange(of: isBox, perform: shapeChanged)
+                            .padding()
                             NavigationLink("Object Info", destination: ObjectSettings(size: $distance, r: $r, g: $g, b: $b))
                         }
                         VStack {
@@ -130,19 +154,23 @@ struct ContentView: View {
     }
     
     private func sliderColorRChanged(to newValue: Double) {
-        boxConfig.r = newValue
+        shapeConfig.r = newValue
     }
     
     private func sliderColorGChanged(to newValue: Double) {
-        boxConfig.g = newValue
+        shapeConfig.g = newValue
     }
     
     private func sliderColorBChanged(to newValue: Double) {
-        boxConfig.b = newValue
+        shapeConfig.b = newValue
     }
     
     private func sliderBoxSizeChanged(to newValue: Double) {
-        boxConfig.size = Double(newValue.rounded())
+        shapeConfig.size = Double(newValue.rounded())
+    }
+    
+    private func shapeChanged(to newValue: Bool) {
+        shapeConfig.isBox = newValue
     }
 }
 
