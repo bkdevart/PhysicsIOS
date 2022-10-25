@@ -83,6 +83,7 @@ struct ContentView: View {
             Group {
                 VStack {
                     // TODO: find a way to use Geometry Reader to dynamically fit and keep correct ratio for boxes
+                    // LayoutAndGeometry from 100 days of swiftui could be helpful
                     SpriteView(scene: scene)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .ignoresSafeArea()
@@ -90,37 +91,37 @@ struct ContentView: View {
                     HStack {
                         VStack {
                             Text("Box Size")
-                            Slider(value: $distance, in: 1...240, step: 1)
+                            Slider(value: $distance, in: 40...240, step: 1)
                                             .padding([.horizontal, .bottom])
                                             .onChange(of: distance, perform: sliderBoxSizeChanged)
-                            // button to show different information here (user color settings, size settings)
-                            NavigationLink("Object Info", destination: ObjectSettings())
-                            // centerCoordinate: $centerCoordinate, locations: $locations, selectedPlace: $selectedPlace, showingPlaceDetails: $showingPlaceDetails, showingEditScreen: $showingEditScreen)
-                            // TODO: add preview of square below size slider so user can see color being dropped (just color fo now, size later)
+                            // shows different information here (user color settings, size settings)
+                            NavigationLink("Object Info", destination: ObjectSettings(size: $distance, r: $r, g: $g, b: $b))
                         }
                         VStack {
-                            HStack {
-                                Text("Color")
+                            Text("Color")
+                            VStack {
+                                HStack {
+                                    Text("R")
+                                    Slider(value: $r, in: 0...1, step: 0.01)
+                                                    .padding([.horizontal, .bottom])
+                                                    .onChange(of: r, perform: sliderColorRChanged)
+                                }
+                                HStack {
+                                    Text("G")
+                                    Slider(value: $g, in: 0...1, step: 0.01)
+                                                    .padding([.horizontal, .bottom])
+                                                    .onChange(of: g, perform: sliderColorGChanged)
+                                }
+                                HStack {
+                                    Text("B")
+                                    Slider(value: $b, in: 0...1, step: 0.01)
+                                                    .padding([.horizontal, .bottom])
+                                                    .onChange(of: b, perform: sliderColorBChanged)
+                                }
                             }
-                            HStack {
-                                Text("R")
-                                Slider(value: $r, in: 0...1, step: 0.01)
-                                                .padding([.horizontal, .bottom])
-                                                .onChange(of: r, perform: sliderColorRChanged)
-                            }
-                            HStack {
-                                Text("G")
-                                Slider(value: $g, in: 0...1, step: 0.01)
-                                                .padding([.horizontal, .bottom])
-                                                .onChange(of: g, perform: sliderColorGChanged)
-                            }
-                            HStack {
-                                Text("B")
-                                Slider(value: $b, in: 0...1, step: 0.01)
-                                                .padding([.horizontal, .bottom])
-                                                .onChange(of: b, perform: sliderColorBChanged)
-                            }
+                            .background(Color(red: r, green: g, blue: b))  // gives preview of chosen color
                         }
+                        
                     }
                 }
             }

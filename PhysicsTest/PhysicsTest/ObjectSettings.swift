@@ -8,13 +8,22 @@
 import SwiftUI
 
 struct ObjectSettings: View {
+    @Binding var size: Double
+    @Binding var r: Double
+    @Binding var g: Double
+    @Binding var b: Double
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        Text("Current object values:")
+        Text("Size: \(size)")
+        Text("R: \(r)")
+        Text("G: \(g)")
+        Text("B: \(b)")
     }
 }
 
 struct ObjectSettings_Previews: PreviewProvider {
     static var previews: some View {
-        ObjectSettings()
+        ObjectSettings(size: .constant(120.0), r: .constant(0.5), g: .constant(0.5), b: .constant(0.5))
     }
 }
