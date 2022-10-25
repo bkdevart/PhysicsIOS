@@ -24,13 +24,16 @@ extension Color {
 // TODO: using this to track box size and color selection
 class UIJoin: ObservableObject {
     @Published var size = 120.0
+    @Published var r = 0.5
+    @Published var g = 0.5
+    @Published var b = 0.5
 
     static var shared = UIJoin()
 }
 
 class GameScene: SKScene {
     // TODO: using this to track box size and color selection
-    @ObservedObject var kickoff = UIJoin.shared
+    @ObservedObject var controls = UIJoin.shared
     
     override func didMove(to view: SKView) {
         physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
@@ -44,9 +47,9 @@ class GameScene: SKScene {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
         // make box size between 40 and 240 (based on slider)
-        let boxWidth = Int(kickoff.size)
-        let boxHeight = Int(kickoff.size)
-        // make color random as well (based on slider)
+        let boxWidth = Int(controls.size)
+        let boxHeight = Int(controls.size)
+        // TODO: make color random as well (based on slider)
         let randomColor: Color = .random
         let box = SKSpriteNode(color: UIColor(randomColor), size: CGSize(width: boxWidth, height: boxHeight))
         box.position = location
@@ -70,13 +73,11 @@ struct ContentView: View {
     let boxConfig = UIJoin.shared
     
     @Binding var value: Int
-//    let hintKey: String
     @State private var sliderValue: Double = 0.0
     
     var scene: SKScene {
         let scene = GameScene()
-        // temporary workaround until dynamic sizing performed
-
+        // TODO: temporary workaround until dynamic sizing performed
         scene.size = CGSize(width: maxWidth, height: maxHeight)
         scene.scaleMode = .fill
         return scene
@@ -84,19 +85,40 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            
             VStack {
+                // TODO: find a way to use Geometry Reader to dynamically fit and keep correct ratio for boxes
                 SpriteView(scene: scene)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea()
                 Spacer()
-                Text("Box Size")
-                Slider(value: $distance, in: 1...240, step: 1)
-                                .padding([.horizontal, .bottom])
-                                .onChange(of: distance, perform: sliderChanged)
-                Text("Color")
-                Slider(value: $color, in: 0...1, step: 0.01)
-                                .padding([.horizontal, .bottom])
+                HStack {
+                    VStack {
+                        Text("Box Size")
+                        Slider(value: $distance, in: 1...240, step: 1)
+                                        .padding([.horizontal, .bottom])
+                                        .onChange(of: distance, perform: sliderChanged)
+                    }
+                    VStack {
+                        HStack {
+                            Text("Color")
+                        }
+                        HStack {
+                            Text("R")
+                            Slider(value: $color, in: 0...1, step: 0.01)
+                                            .padding([.horizontal, .bottom])
+                        }
+                        HStack {
+                            Text("G")
+                            Slider(value: $color, in: 0...1, step: 0.01)
+                                            .padding([.horizontal, .bottom])
+                        }
+                        HStack {
+                            Text("B")
+                            Slider(value: $color, in: 0...1, step: 0.01)
+                                            .padding([.horizontal, .bottom])
+                        }
+                    }
+                }
             }
         }
     }
