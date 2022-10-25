@@ -46,7 +46,7 @@ class GameScene: SKScene {
         let chosenColor: Color = Color(red: controls.r,
                                        green: controls.g,
                                        blue: controls.b)
-        // TODO: add triangle as option
+        // add another shape as an option
         if (controls.isBox) {
             let box = SKSpriteNode(color: UIColor(chosenColor), size: CGSize(width: boxWidth, height: boxHeight))
             box.position = location
@@ -54,6 +54,7 @@ class GameScene: SKScene {
             box.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: boxWidth, height: boxHeight))
             addChild(box)
         } else {
+            // TODO: can use this method to create more complicated shapes, and allow user to do so themselves
             let path = CGMutablePath()
             path.addArc(center: CGPoint.zero,
                         radius: controls.size / 2,
@@ -142,10 +143,12 @@ struct ContentView: View {
                                                     .padding([.horizontal, .bottom])
                                                     .onChange(of: b, perform: sliderColorBChanged)
                                 }
+                                
                             }
+                            .padding()
                             .background(Color(red: r, green: g, blue: b))  // gives preview of chosen color
                         }
-                        
+                        .padding()
                     }
                 }
             }
