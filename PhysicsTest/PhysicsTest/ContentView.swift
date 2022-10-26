@@ -62,7 +62,7 @@ class GameScene: SKScene {
             // see if this causes gravity effect to take hold
             box.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: boxWidth, height: boxHeight))
             addChild(box)
-        // TODO: can use this method to create more complicated shapes, and allow user to do so themselves
+        // TODO: can use path method to create more complicated shapes, and allow user to do so themselves
         case "circle":
             print("Circle")
             let path = CGMutablePath()
@@ -79,6 +79,17 @@ class GameScene: SKScene {
             addChild(ball)
         case "triangle":
             print("Triangle")
+            let path = CGMutablePath()
+            // TODO: adapt this to a 3-point path for a triangle
+            path.move(to: CGPoint(x: 0, y: controls.size))
+            path.addLine(to: CGPoint(x: controls.size, y: controls.size))
+            path.addLine(to: CGPoint(x: 0, y: 0))
+            let triangle = SKShapeNode(path: path)
+            triangle.fillColor = UIColor(chosenColor)
+            triangle.strokeColor = UIColor(chosenColor)
+            triangle.position = location
+            triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
+            addChild(triangle)
         default:
             print("You failed")
         }
