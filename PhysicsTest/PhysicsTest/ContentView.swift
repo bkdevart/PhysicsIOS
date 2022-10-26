@@ -24,7 +24,7 @@ class UIJoin: ObservableObject {
     @Published var r = 0.34
     @Published var g = 0.74
     @Published var b = 0.7
-    @Published var shape = "Rectangle"
+    @Published var shape = "rectangle"
     @Published var selectedShape: Shape = .rectangle
 
     static var shared = UIJoin()
@@ -52,15 +52,19 @@ class GameScene: SKScene {
         let chosenColor: Color = Color(red: controls.r,
                                        green: controls.g,
                                        blue: controls.b)
-        // add another shape as an option
-        if (controls.shape == "Rectangle") {
+        // add other shapes as an options
+        print(controls.shape)
+        switch controls.shape {
+        case "rectangle":
+            print("Rectangle")
             let box = SKSpriteNode(color: UIColor(chosenColor), size: CGSize(width: boxWidth, height: boxHeight))
             box.position = location
             // see if this causes gravity effect to take hold
             box.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: boxWidth, height: boxHeight))
             addChild(box)
-        } else {
-            // TODO: can use this method to create more complicated shapes, and allow user to do so themselves
+        // TODO: can use this method to create more complicated shapes, and allow user to do so themselves
+        case "circle":
+            print("Circle")
             let path = CGMutablePath()
             path.addArc(center: CGPoint.zero,
                         radius: controls.size / 2,
@@ -73,6 +77,10 @@ class GameScene: SKScene {
             ball.position = location
             ball.physicsBody = SKPhysicsBody(circleOfRadius: controls.size / 2)
             addChild(ball)
+        case "triangle":
+            print("Triangle")
+        default:
+            print("You failed")
         }
         
         print("object height/width: \(boxWidth), r:  \(controls.r), g:  \(controls.g), b:  \(controls.b)")
@@ -86,7 +94,6 @@ struct ContentView: View {
     @State private var r = 0.34
     @State private var g = 0.74
     @State private var b = 0.7
-//    @State private var isBox = true
     
     // using this to track box size and color selection as it changes
     let shapeConfig = UIJoin.shared
@@ -97,14 +104,9 @@ struct ContentView: View {
     @State private var maxHeight = 2532
     @State private var maxWidth = 1170
     
-    // for picker
-//    enum Shape: String, CaseIterable, Identifiable {
-//        case rectangle, circle, triangle
-//        var id: Self { self }
-//    }
 
-    // TODO: import current shape variable from UIJoin
-    @State private var selectedShape: Shape = .rectangle // shapeConfig.selectedShape
+    // houses shape picker selection
+    @State private var selectedShape: Shape = .rectangle
     
     var scene: SKScene {
         let scene = GameScene()
@@ -125,19 +127,15 @@ struct ContentView: View {
                         .ignoresSafeArea()
                     HStack {
                         VStack {
-                            Text(selectedShape.rawValue)
+                            Text("\(selectedShape.rawValue) size")
                             Slider(value: $distance, in: 40...240, step: 1)
                                             .padding([.horizontal, .bottom])
                                             .onChange(of: distance, perform: sliderBoxSizeChanged)
-                            // TODO: make this picker object with square/circle/triangle options
-                            Picker("Flavor", selection: $selectedShape) {
+                            Picker("Shape", selection: $selectedShape) {
                                 Text("Rectangle").tag(Shape.rectangle)
                                 Text("Circle").tag(Shape.circle)
                                 Text("Triangle").tag(Shape.triangle)
                             }
-//                            Toggle(isOn: $isBox) {
-//                                Text("Shape")
-//                            }
                             .onChange(of: selectedShape.rawValue, perform: shapeChanged)
                             .padding()
                             // shows different information here (user color settings, size settings)
