@@ -13,13 +13,19 @@ import SwiftUI
 import CoreData
 import SpriteKit
 
+enum Shape: String, CaseIterable, Identifiable {
+    case rectangle, circle, triangle
+    var id: Self { self }
+}
+
 // using this to track box size and color selection across views
 class UIJoin: ObservableObject {
     @Published var size = 120.0
     @Published var r = 0.34
     @Published var g = 0.74
     @Published var b = 0.7
-    @Published var isBox = true
+    @Published var shape = "Rectangle"
+    @Published var selectedShape: Shape = .rectangle
 
     static var shared = UIJoin()
 }
@@ -47,7 +53,7 @@ class GameScene: SKScene {
                                        green: controls.g,
                                        blue: controls.b)
         // add another shape as an option
-        if (controls.isBox) {
+        if (controls.shape == "Rectangle") {
             let box = SKSpriteNode(color: UIColor(chosenColor), size: CGSize(width: boxWidth, height: boxHeight))
             box.position = location
             // see if this causes gravity effect to take hold
@@ -80,7 +86,7 @@ struct ContentView: View {
     @State private var r = 0.34
     @State private var g = 0.74
     @State private var b = 0.7
-    @State private var isBox = true
+//    @State private var isBox = true
     
     // using this to track box size and color selection as it changes
     let shapeConfig = UIJoin.shared
@@ -90,6 +96,15 @@ struct ContentView: View {
      */
     @State private var maxHeight = 2532
     @State private var maxWidth = 1170
+    
+    // for picker
+//    enum Shape: String, CaseIterable, Identifiable {
+//        case rectangle, circle, triangle
+//        var id: Self { self }
+//    }
+
+    // TODO: import current shape variable from UIJoin
+    @State private var selectedShape: Shape = .rectangle // shapeConfig.selectedShape
     
     var scene: SKScene {
         let scene = GameScene()
@@ -110,21 +125,28 @@ struct ContentView: View {
                         .ignoresSafeArea()
                     HStack {
                         VStack {
-                            Text(isBox ? "Box Size" : "Circle Size")
+                            Text(selectedShape.rawValue)
                             Slider(value: $distance, in: 40...240, step: 1)
                                             .padding([.horizontal, .bottom])
                                             .onChange(of: distance, perform: sliderBoxSizeChanged)
-                            // shows different information here (user color settings, size settings)
-                            Toggle(isOn: $isBox) {
-                                Text("Shape")
+                            // TODO: make this picker object with square/circle/triangle options
+                            Picker("Flavor", selection: $selectedShape) {
+                                Text("Rectangle").tag(Shape.rectangle)
+                                Text("Circle").tag(Shape.circle)
+                                Text("Triangle").tag(Shape.triangle)
                             }
-                            .onChange(of: isBox, perform: shapeChanged)
+//                            Toggle(isOn: $isBox) {
+//                                Text("Shape")
+//                            }
+                            .onChange(of: selectedShape.rawValue, perform: shapeChanged)
                             .padding()
+                            // shows different information here (user color settings, size settings)
                             NavigationLink("Object Info", destination: ObjectSettings(size: $distance, r: $r, g: $g, b: $b))
                         }
                         VStack {
                             Text("Color")
                             VStack {
+                                // TODO: see if you can caculate complimentary color to current and adjust RGB text to match
                                 HStack {
                                     Text("R")
                                     Slider(value: $r, in: 0...1, step: 0.01)
@@ -172,8 +194,8 @@ struct ContentView: View {
         shapeConfig.size = Double(newValue.rounded())
     }
     
-    private func shapeChanged(to newValue: Bool) {
-        shapeConfig.isBox = newValue
+    private func shapeChanged(to newValue: String) {
+        shapeConfig.shape = newValue
     }
 }
 
