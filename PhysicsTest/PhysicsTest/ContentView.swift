@@ -79,11 +79,19 @@ class GameScene: SKScene {
             addChild(ball)
         case "triangle":
             print("Triangle")
+
             let path = CGMutablePath()
-            // TODO: adapt this to a 3-point path for a triangle
-            path.move(to: CGPoint(x: 0, y: controls.size))
-            path.addLine(to: CGPoint(x: controls.size, y: controls.size))
-            path.addLine(to: CGPoint(x: 0, y: 0))
+            // high concept: https://www.mathopenref.com/consttrianglesss.html
+            // triangle general formulas: https://www.cuemath.com/geometry/triangles/
+            // note: if two sides add to less than a third, no triangle is possible
+            // TODO: try two side lengths and an angle, infer 3rd size
+            // 3-point path for a triangle
+            // center shape around x=0
+            let triangle_half = controls.size / 2
+            path.move(to: CGPoint(x: 0, y: controls.size))  // triangle top
+            path.addLine(to: CGPoint(x: triangle_half, y: 0))  // bottom right corner
+            path.addLine(to: CGPoint(x: -triangle_half, y: 0))  // bottom left corner
+            path.addLine(to: CGPoint(x: 0, y: controls.size))  // back to triangle top (not needed)
             let triangle = SKShapeNode(path: path)
             triangle.fillColor = UIColor(chosenColor)
             triangle.strokeColor = UIColor(chosenColor)
@@ -138,10 +146,6 @@ struct ContentView: View {
                         .ignoresSafeArea()
                     HStack {
                         VStack {
-                            Text("\(selectedShape.rawValue) size")
-                            Slider(value: $distance, in: 40...240, step: 1)
-                                            .padding([.horizontal, .bottom])
-                                            .onChange(of: distance, perform: sliderBoxSizeChanged)
                             Picker("Shape", selection: $selectedShape) {
                                 Text("Rectangle").tag(Shape.rectangle)
                                 Text("Circle").tag(Shape.circle)
@@ -149,6 +153,10 @@ struct ContentView: View {
                             }
                             .onChange(of: selectedShape.rawValue, perform: shapeChanged)
                             .padding()
+                            Text("\(selectedShape.rawValue) size")
+                            Slider(value: $distance, in: 40...240, step: 1)
+                                            .padding([.horizontal, .bottom])
+                                            .onChange(of: distance, perform: sliderBoxSizeChanged)
                             // shows different information here (user color settings, size settings)
                             NavigationLink("Object Info", destination: ObjectSettings(size: $distance, r: $r, g: $g, b: $b))
                         }
