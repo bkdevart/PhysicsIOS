@@ -12,6 +12,7 @@
 import SwiftUI
 import CoreData
 import SpriteKit
+//import UIKit
 
 enum Shape: String, CaseIterable, Identifiable {
     case rectangle, circle, triangle
@@ -27,7 +28,7 @@ class UIJoin: ObservableObject {
     @Published var shape = "rectangle"
     @Published var selectedShape: Shape = .rectangle
     @Published var screenWidth = 428
-    @Published var screenHeight = 845
+    @Published var screenHeight = 478
 
     static var shared = UIJoin()
 }
@@ -64,10 +65,18 @@ class GameScene: SKScene {
         switch controls.shape {
         case "rectangle":
             print("Rectangle")
-            let box = SKSpriteNode(color: UIColor(chosenColor), size: CGSize(width: boxWidth, height: boxHeight))
+            let path = CGMutablePath()
+            let box_half = Int(boxWidth) / 2
+            path.move(to: CGPoint(x: -box_half, y: Int(boxWidth)))  // upper left corner
+            path.addLine(to: CGPoint(x: box_half, y: Int(boxWidth)))  // upper right corner
+            path.addLine(to: CGPoint(x: box_half, y: 0)) // bottom right corner
+            path.addLine(to: CGPoint(x: -box_half, y: 0))  // bottom left corner
+            let box = SKShapeNode(path: path)
+            box.fillColor = UIColor(chosenColor)
+            box.strokeColor = UIColor(chosenColor)
             box.position = location
-            // see if this causes gravity effect to take hold
-            box.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: boxWidth, height: boxHeight))
+            box.physicsBody = SKPhysicsBody(polygonFrom: path)
+            // TODO: figure out what addChild is being called with
             addChild(box)
         // TODO: can use path method to create more complicated shapes, and allow user to do so themselves
         case "circle":
@@ -86,33 +95,14 @@ class GameScene: SKScene {
             addChild(ball)
         case "triangle":
             print("Triangle")
-            // TODO: GeometryReader scaling for triangle
-            
-//                var width: CGFloat = min(reader.size.width, reader.size.height) / 2  // using 2 in place of %
-//                let height = width
-//                let path = CGMutablePath()
-//                path.move(to: CGPoint(x: 0, y: width)) // triangle top
-//                path.addLine(to: CGPoint(x: width, y: 0))  // bottom right corner
-//                path.addLine(to: CGPoint(x: -width, y: 0))  // bottom left corner
-//                let triangle = SKShapeNode(path: path as! CGPath)
-//                triangle.fillColor = UIColor(chosenColor)
-//                triangle.strokeColor = UIColor(chosenColor)
-//                triangle.position = location
-//                triangle.physicsBody = SKPhysicsBody(polygonFrom: path as! CGPath)
-//                self.addChild(triangle)
-            
             let path = CGMutablePath()
-            // high concept: https://www.mathopenref.com/consttrianglesss.html
-            // triangle general formulas: https://www.cuemath.com/geometry/triangles/
-            // note: if two sides add to less than a third, no triangle is possible
             // TODO: try two side lengths and an angle, infer 3rd size
-            // 3-point path for a triangle
             // center shape around x=0
             let triangle_half = Int(boxWidth) / 2
-            path.move(to: CGPoint(x: 0, y: Int(boxWidth)))  // triangle top
+            path.move(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // triangle top
             path.addLine(to: CGPoint(x: triangle_half, y: 0))  // bottom right corner
             path.addLine(to: CGPoint(x: -triangle_half, y: 0))  // bottom left corner
-            path.addLine(to: CGPoint(x: 0, y: Int(boxWidth)))  // back to triangle top (not needed)
+            path.addLine(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // back to triangle top (not needed)
             let triangle = SKShapeNode(path: path)
             triangle.fillColor = UIColor(chosenColor)
             triangle.strokeColor = UIColor(chosenColor)
@@ -161,71 +151,75 @@ struct ContentView: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            let width = geometry.size.width
-            let height = geometry.size.height
-//            shapeConfig.screenWidth = Int(width)
-//            shapeConfig.screenHeight = Int(height)
+
             
-            NavigationView {
-                Group {
+    NavigationView {
+        Group {
+            VStack {
+                // TODO: find a way to use Geometry Reader to dynamically fit and keep correct ratio for boxes
+                // LayoutAndGeometry from 100 days of swiftui could be helpful
+                
+                GeometryReader { geometry in
+                    let width = geometry.size.width
+//                    let height = geometry.size.height
+                    
+                    // note: making the scene square allows for rendering using square ratios
+                    SpriteView(scene: scene)
+                        .frame(maxWidth: width, maxHeight: width)  // height
+                        .ignoresSafeArea()
+                    //            shapeConfig.screenWidth = Int(width)
+                    //            shapeConfig.screenHeight = Int(height)
+                }
+                HStack {
                     VStack {
-                        // TODO: find a way to use Geometry Reader to dynamically fit and keep correct ratio for boxes
-                        // LayoutAndGeometry from 100 days of swiftui could be helpful
-                        SpriteView(scene: scene)
-                            .frame(maxWidth: width, maxHeight: height)
-                            .ignoresSafeArea()
-                        HStack {
-                            VStack {
-                                Picker("Shape", selection: $selectedShape) {
-                                    Text("Rectangle").tag(Shape.rectangle)
-                                    Text("Circle").tag(Shape.circle)
-                                    Text("Triangle").tag(Shape.triangle)
-                                }
-                                .onChange(of: selectedShape.rawValue, perform: shapeChanged)
-                                .padding()
-                                Text("\(selectedShape.rawValue) size")
-                                Slider(value: $distance, in: 1...50, step: 1)
-                                    .padding([.horizontal, .bottom])
-                                    .onChange(of: distance, perform: sliderBoxSizeChanged)
-                                // shows different information here (user color settings, size settings)
-                                NavigationLink("Object Info", destination: ObjectSettings(size: $distance, r: $r, g: $g, b: $b))
-                            }
-                            VStack {
-                                Text("Color")
-                                VStack {
-                                    // TODO: see if you can caculate complimentary color to current and adjust RGB text to match
-                                    HStack {
-                                        Text("R")
-                                        Slider(value: $r, in: 0...1, step: 0.01)
-                                            .padding([.horizontal, .bottom])
-                                            .onChange(of: r, perform: sliderColorRChanged)
-                                    }
-                                    HStack {
-                                        Text("G")
-                                        Slider(value: $g, in: 0...1, step: 0.01)
-                                            .padding([.horizontal, .bottom])
-                                            .onChange(of: g, perform: sliderColorGChanged)
-                                    }
-                                    HStack {
-                                        Text("B")
-                                        Slider(value: $b, in: 0...1, step: 0.01)
-                                            .padding([.horizontal, .bottom])
-                                            .onChange(of: b, perform: sliderColorBChanged)
-                                    }
-                                    
-                                }
-                                .padding()
-                                .background(Color(red: r, green: g, blue: b))  // gives preview of chosen color
-                            }
-                            .padding()
+                        Picker("Shape", selection: $selectedShape) {
+                            Text("Rectangle").tag(Shape.rectangle)
+                            Text("Circle").tag(Shape.circle)
+                            Text("Triangle").tag(Shape.triangle)
                         }
+                        .onChange(of: selectedShape.rawValue, perform: shapeChanged)
+                        .padding()
+                        Text("\(selectedShape.rawValue) size")
+                        Slider(value: $distance, in: 1...50, step: 1)
+                            .padding([.horizontal, .bottom])
+                            .onChange(of: distance, perform: sliderBoxSizeChanged)
+                        // shows different information here (user color settings, size settings)
+                        NavigationLink("Object Info", destination: ObjectSettings(size: $distance, r: $r, g: $g, b: $b))
                     }
+                    VStack {
+                        Text("Color")
+                        VStack {
+                            // TODO: see if you can caculate complimentary color to current and adjust RGB text to match
+                            HStack {
+                                Text("R")
+                                Slider(value: $r, in: 0...1, step: 0.01)
+                                    .padding([.horizontal, .bottom])
+                                    .onChange(of: r, perform: sliderColorRChanged)
+                            }
+                            HStack {
+                                Text("G")
+                                Slider(value: $g, in: 0...1, step: 0.01)
+                                    .padding([.horizontal, .bottom])
+                                    .onChange(of: g, perform: sliderColorGChanged)
+                            }
+                            HStack {
+                                Text("B")
+                                Slider(value: $b, in: 0...1, step: 0.01)
+                                    .padding([.horizontal, .bottom])
+                                    .onChange(of: b, perform: sliderColorBChanged)
+                            }
+                            
+                        }
+                        .padding()
+                        .background(Color(red: r, green: g, blue: b))  // gives preview of chosen color
+                    }
+                    .padding()
                 }
             }
-            
         }
     }
+}
+    
     
     private func sliderColorRChanged(to newValue: Double) {
         shapeConfig.r = newValue
