@@ -19,17 +19,22 @@ enum Shape: String, CaseIterable, Identifiable {
     var id: Self { self }
 }
 
+enum AddMethod: String, CaseIterable, Identifiable {
+    case pour, drag
+    var id: Self { self }
+}
+
 // using this to track box size and color selection across views
 class UIJoin: ObservableObject {
     @Published var r = 0.34
     @Published var g = 0.74
     @Published var b = 0.7
-    @Published var shape = "rectangle"
     @Published var selectedShape: Shape = .rectangle
     @Published var screenWidth = 428
     @Published var screenHeight = 478
     @Published var boxHeight = 5.0
     @Published var boxWidth = 5.0
+    @Published var addMethod: AddMethod = .pour
 
     static var shared = UIJoin()
 }
@@ -56,8 +61,10 @@ class GameScene: SKScene {
      https://mammothinteractive.com/touches-and-moving-sprites-in-xcode-spritekit-swift-crash-course-free-tutorial/
      */
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for touch in touches{
-            let location = touch.location(in: self)
+        // pour method
+        if (controls.addMethod == .pour) {
+            for touch in touches{
+                let location = touch.location(in: self)
                 let boxWidth = Int((controls.boxWidth / 100.0) * Double(controls.screenWidth))
                 let boxHeight = Int((controls.boxHeight / 100.0) * Double(controls.screenHeight))
                 print("Box height: \(boxHeight)")
@@ -67,9 +74,9 @@ class GameScene: SKScene {
                                                green: controls.g,
                                                blue: controls.b)
                 // basic shapes
-                print(controls.shape)
-                switch controls.shape {
-                case "rectangle":
+                print(controls.selectedShape)
+                switch controls.selectedShape {
+                case .rectangle:
                     print("Rectangle")
                     let path = CGMutablePath()
                     let box_half = Int(boxWidth) / 2
@@ -84,8 +91,8 @@ class GameScene: SKScene {
                     box.physicsBody = SKPhysicsBody(polygonFrom: path)
                     // TODO: figure out what addChild is being called with
                     addChild(box)
-                // TODO: can use path method to create more complicated shapes, and allow user to do so themselves
-                case "circle":
+                    // TODO: can use path method to create more complicated shapes, and allow user to do so themselves
+                case .circle:
                     print("Circle")
                     let path = CGMutablePath()
                     path.addArc(center: CGPoint.zero,
@@ -99,7 +106,7 @@ class GameScene: SKScene {
                     ball.position = location
                     ball.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(Int(boxWidth) / 2))
                     addChild(ball)
-                case "triangle":
+                case .triangle:
                     print("Triangle")
                     let path = CGMutablePath()
                     // TODO: try two side lengths and an angle, infer 3rd size
@@ -116,82 +123,79 @@ class GameScene: SKScene {
                     triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
                     // TODO: figure out what addChild is being called with
                     addChild(triangle)
-                default:
-                    print("You failed")
                 }
-        
                 print("object height/width: \(boxWidth), r:  \(controls.r), g:  \(controls.g), b:  \(controls.b)")
             }
         }
+        
+    }
     
-//    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-//        guard let touch = touches.first else { return }
-//        let location = touch.location(in: self)
-//        // TODO: make this so user can choose height and width
-//        let boxWidth = Int((controls.boxWidth / 100.0) * Double(controls.screenWidth))
-//        let boxHeight = Int((controls.boxHeight / 100.0) * Double(controls.screenHeight))
-//        print("Box height: \(boxHeight)")
-//        print("Box width: \(boxWidth)")
-//        // each color betwen 0 and 1 (based on slider)
-//        let chosenColor: Color = Color(red: controls.r,
-//                                       green: controls.g,
-//                                       blue: controls.b)
-//        // basic shapes
-//        print(controls.shape)
-//        switch controls.shape {
-//        case "rectangle":
-//            print("Rectangle")
-//            let path = CGMutablePath()
-//            let box_half = Int(boxWidth) / 2
-//            path.move(to: CGPoint(x: -box_half, y: Int(boxHeight)))  // upper left corner
-//            path.addLine(to: CGPoint(x: box_half, y: Int(boxHeight)))  // upper right corner
-//            path.addLine(to: CGPoint(x: box_half, y: 0)) // bottom right corner
-//            path.addLine(to: CGPoint(x: -box_half, y: 0))  // bottom left corner
-//            let box = SKShapeNode(path: path)
-//            box.fillColor = UIColor(chosenColor)
-//            box.strokeColor = UIColor(chosenColor)
-//            box.position = location
-//            box.physicsBody = SKPhysicsBody(polygonFrom: path)
-//            // TODO: figure out what addChild is being called with
-//            addChild(box)
-//        // TODO: can use path method to create more complicated shapes, and allow user to do so themselves
-//        case "circle":
-//            print("Circle")
-//            let path = CGMutablePath()
-//            path.addArc(center: CGPoint.zero,
-//                        radius: CGFloat(Int(boxWidth) / 2),
-//                        startAngle: 0,
-//                        endAngle: CGFloat.pi * 2,
-//                        clockwise: true)
-//            let ball = SKShapeNode(path: path)
-//            ball.fillColor = UIColor(chosenColor)
-//            ball.strokeColor = UIColor(chosenColor)
-//            ball.position = location
-//            ball.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(Int(boxWidth) / 2))
-//            addChild(ball)
-//        case "triangle":
-//            print("Triangle")
-//            let path = CGMutablePath()
-//            // TODO: try two side lengths and an angle, infer 3rd size
-//            // center shape around x=0
-//            let triangle_half = Int(boxWidth) / 2
-//            path.move(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // triangle top
-//            path.addLine(to: CGPoint(x: triangle_half, y: 0))  // bottom right corner
-//            path.addLine(to: CGPoint(x: -triangle_half, y: 0))  // bottom left corner
-//            path.addLine(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // back to triangle top (not needed)
-//            let triangle = SKShapeNode(path: path)
-//            triangle.fillColor = UIColor(chosenColor)
-//            triangle.strokeColor = UIColor(chosenColor)
-//            triangle.position = location
-//            triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
-//            // TODO: figure out what addChild is being called with
-//            addChild(triangle)
-//        default:
-//            print("You failed")
-//        }
-//
-//        print("object height/width: \(boxWidth), r:  \(controls.r), g:  \(controls.g), b:  \(controls.b)")
-//    }
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        let location = touch.location(in: self)
+        // TODO: make this so user can choose height and width
+        let boxWidth = Int((controls.boxWidth / 100.0) * Double(controls.screenWidth))
+        let boxHeight = Int((controls.boxHeight / 100.0) * Double(controls.screenHeight))
+        print("Box height: \(boxHeight)")
+        print("Box width: \(boxWidth)")
+        // each color betwen 0 and 1 (based on slider)
+        let chosenColor: Color = Color(red: controls.r,
+                                       green: controls.g,
+                                       blue: controls.b)
+        // basic shapes
+        print(controls.selectedShape)
+        switch controls.selectedShape {
+        case .rectangle:
+            print("Rectangle")
+            let path = CGMutablePath()
+            let box_half = Int(boxWidth) / 2
+            path.move(to: CGPoint(x: -box_half, y: Int(boxHeight)))  // upper left corner
+            path.addLine(to: CGPoint(x: box_half, y: Int(boxHeight)))  // upper right corner
+            path.addLine(to: CGPoint(x: box_half, y: 0)) // bottom right corner
+            path.addLine(to: CGPoint(x: -box_half, y: 0))  // bottom left corner
+            let box = SKShapeNode(path: path)
+            box.fillColor = UIColor(chosenColor)
+            box.strokeColor = UIColor(chosenColor)
+            box.position = location
+            box.physicsBody = SKPhysicsBody(polygonFrom: path)
+            // TODO: figure out what addChild is being called with
+            addChild(box)
+        // TODO: can use path method to create more complicated shapes, and allow user to do so themselves
+        case .circle:
+            print("Circle")
+            let path = CGMutablePath()
+            path.addArc(center: CGPoint.zero,
+                        radius: CGFloat(Int(boxWidth) / 2),
+                        startAngle: 0,
+                        endAngle: CGFloat.pi * 2,
+                        clockwise: true)
+            let ball = SKShapeNode(path: path)
+            ball.fillColor = UIColor(chosenColor)
+            ball.strokeColor = UIColor(chosenColor)
+            ball.position = location
+            ball.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(Int(boxWidth) / 2))
+            addChild(ball)
+        case .triangle:
+            print("Triangle")
+            let path = CGMutablePath()
+            // TODO: try two side lengths and an angle, infer 3rd size
+            // center shape around x=0
+            let triangle_half = Int(boxWidth) / 2
+            path.move(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // triangle top
+            path.addLine(to: CGPoint(x: triangle_half, y: 0))  // bottom right corner
+            path.addLine(to: CGPoint(x: -triangle_half, y: 0))  // bottom left corner
+            path.addLine(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // back to triangle top (not needed)
+            let triangle = SKShapeNode(path: path)
+            triangle.fillColor = UIColor(chosenColor)
+            triangle.strokeColor = UIColor(chosenColor)
+            triangle.position = location
+            triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
+            // TODO: figure out what addChild is being called with
+            addChild(triangle)
+        }
+
+        print("object height/width: \(boxWidth), r:  \(controls.r), g:  \(controls.g), b:  \(controls.b)")
+    }
 }
 
 
@@ -209,13 +213,10 @@ struct ContentView: View {
     /*
      May have to read https://github.com/joshuajhomann/SwiftUI-Spirograph to get combine to work with geometry reader to get proper scene.size set (hardcoded to iPhone 13 pro right now)
      */
-    
-
-//    var maxHeight = 2532
-//    var maxWidth = 1170
 
     // houses shape picker selection
     @State private var selectedShape: Shape = .rectangle
+    @State private var addMethod: AddMethod = .pour
     
     var scene: SKScene {
         let scene = GameScene()
@@ -244,7 +245,7 @@ struct ContentView: View {
                             Text("Circle").tag(Shape.circle)
                             Text("Triangle").tag(Shape.triangle)
                         }
-                        .onChange(of: selectedShape.rawValue, perform: shapeChanged)
+                        .onChange(of: selectedShape, perform: shapeChanged)
                         Text("\(selectedShape.rawValue) size")
                         HStack {
                             Text("H")
@@ -301,6 +302,12 @@ struct ContentView: View {
                     //            shapeConfig.screenWidth = Int(width)
                     //            shapeConfig.screenHeight = Int(height)
                 }
+                // choose how to add shapes to the physics environment
+                Picker("AddMethod", selection: $addMethod) {
+                    Text("Pour").tag(AddMethod.pour)
+                    Text("Drag").tag(AddMethod.drag)
+                }
+                .onChange(of: addMethod, perform: addMethodChanged)
                 // shows different information here (user color settings, size settings)
                 NavigationLink("Object Info", destination: ObjectSettings(height: $boxHeight, width: $boxWidth, r: $r, g: $g, b: $b))
                 Spacer()
@@ -330,8 +337,12 @@ struct ContentView: View {
         shapeConfig.boxWidth = Double(newValue.rounded())
     }
     
-    private func shapeChanged(to newValue: String) {
-        shapeConfig.shape = newValue
+    private func shapeChanged(to newValue: Shape) {
+        shapeConfig.selectedShape = newValue
+    }
+    
+    private func addMethodChanged(to newValue: AddMethod) {
+        shapeConfig.addMethod = newValue
     }
 }
 
