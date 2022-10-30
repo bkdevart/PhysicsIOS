@@ -29,6 +29,8 @@ class UIJoin: ObservableObject {
     @Published var selectedShape: Shape = .rectangle
     @Published var screenWidth = 428
     @Published var screenHeight = 478
+    @Published var boxHeight = 5.0
+    @Published var boxWidth = 5.0
 
     static var shared = UIJoin()
 }
@@ -50,9 +52,9 @@ class GameScene: SKScene {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
         // TODO: make this so user can choose height and width
-        let boxWidth = Int((controls.size / 100.0) * Double(controls.screenWidth))
-//        let boxHeight = Int((controls.size / 100.0) * Double(controls.screenHeight))
-        let boxHeight = Int((controls.size / 100.0) * Double(controls.screenWidth))
+        let boxWidth = Int((controls.boxWidth / 100.0) * Double(controls.screenWidth))
+        let boxHeight = Int((controls.boxHeight / 100.0) * Double(controls.screenHeight))
+//        let boxHeight = Int((controls.size / 100.0) * Double(controls.screenWidth))
         print("Control size \(controls.size)")
         print("Box height: \(boxHeight)")
         print("Box width: \(boxWidth)")
@@ -67,8 +69,8 @@ class GameScene: SKScene {
             print("Rectangle")
             let path = CGMutablePath()
             let box_half = Int(boxWidth) / 2
-            path.move(to: CGPoint(x: -box_half, y: Int(boxWidth)))  // upper left corner
-            path.addLine(to: CGPoint(x: box_half, y: Int(boxWidth)))  // upper right corner
+            path.move(to: CGPoint(x: -box_half, y: Int(boxHeight)))  // upper left corner
+            path.addLine(to: CGPoint(x: box_half, y: Int(boxHeight)))  // upper right corner
             path.addLine(to: CGPoint(x: box_half, y: 0)) // bottom right corner
             path.addLine(to: CGPoint(x: -box_half, y: 0))  // bottom left corner
             let box = SKShapeNode(path: path)
@@ -121,7 +123,8 @@ class GameScene: SKScene {
 
 struct ContentView: View {
     // default box/color values - these are initialized in UIJoin (may not need values?)
-    @State private var distance = 5.0
+    @State private var boxHeight = 5.0
+    @State private var boxWidth = 5.0
     @State private var r = 0.34
     @State private var g = 0.74
     @State private var b = 0.7
@@ -159,6 +162,60 @@ struct ContentView: View {
                 // TODO: find a way to use Geometry Reader to dynamically fit and keep correct ratio for boxes
                 // LayoutAndGeometry from 100 days of swiftui could be helpful
                 
+                
+                HStack {
+                    VStack {
+                        Picker("Shape", selection: $selectedShape) {
+                            Text("Rectangle").tag(Shape.rectangle)
+                            Text("Circle").tag(Shape.circle)
+                            Text("Triangle").tag(Shape.triangle)
+                        }
+                        .onChange(of: selectedShape.rawValue, perform: shapeChanged)
+                        Text("\(selectedShape.rawValue) size")
+                        HStack {
+                            Text("H")
+                            Slider(value: $boxHeight, in: 1...50, step: 1)
+                                .padding([.horizontal])
+                                .onChange(of: boxHeight, perform: sliderBoxHeightChanged)
+                        }
+                        HStack {
+                            Text("W")
+                            Slider(value: $boxWidth, in: 1...50, step: 1)
+                                .padding([.horizontal])
+                                .onChange(of: boxWidth, perform: sliderBoxWidthChanged)
+                        }
+                    }
+                    .padding()
+                    VStack {
+                        Text("Color")
+                        VStack {
+                            // TODO: see if you can caculate complimentary color to current and adjust RGB text to match
+                            HStack {
+                                Text("R")
+                                Slider(value: $r, in: 0...1, step: 0.01)
+                                    .padding([.horizontal])
+                                    .onChange(of: r, perform: sliderColorRChanged)
+                            }
+                            HStack {
+                                Text("G")
+                                Slider(value: $g, in: 0...1, step: 0.01)
+                                    .padding([.horizontal])
+                                    .onChange(of: g, perform: sliderColorGChanged)
+                            }
+                            HStack {
+                                Text("B")
+                                Slider(value: $b, in: 0...1, step: 0.01)
+                                    .padding([.horizontal])
+                                    .onChange(of: b, perform: sliderColorBChanged)
+                            }
+                            
+                        }
+                        .padding()
+                        .background(Color(red: r, green: g, blue: b))  // gives preview of chosen color
+                    }
+                    .padding()
+                }
+                
                 GeometryReader { geometry in
                     let width = geometry.size.width
 //                    let height = geometry.size.height
@@ -170,51 +227,9 @@ struct ContentView: View {
                     //            shapeConfig.screenWidth = Int(width)
                     //            shapeConfig.screenHeight = Int(height)
                 }
-                HStack {
-                    VStack {
-                        Picker("Shape", selection: $selectedShape) {
-                            Text("Rectangle").tag(Shape.rectangle)
-                            Text("Circle").tag(Shape.circle)
-                            Text("Triangle").tag(Shape.triangle)
-                        }
-                        .onChange(of: selectedShape.rawValue, perform: shapeChanged)
-                        .padding()
-                        Text("\(selectedShape.rawValue) size")
-                        Slider(value: $distance, in: 1...50, step: 1)
-                            .padding([.horizontal, .bottom])
-                            .onChange(of: distance, perform: sliderBoxSizeChanged)
-                        // shows different information here (user color settings, size settings)
-                        NavigationLink("Object Info", destination: ObjectSettings(size: $distance, r: $r, g: $g, b: $b))
-                    }
-                    VStack {
-                        Text("Color")
-                        VStack {
-                            // TODO: see if you can caculate complimentary color to current and adjust RGB text to match
-                            HStack {
-                                Text("R")
-                                Slider(value: $r, in: 0...1, step: 0.01)
-                                    .padding([.horizontal, .bottom])
-                                    .onChange(of: r, perform: sliderColorRChanged)
-                            }
-                            HStack {
-                                Text("G")
-                                Slider(value: $g, in: 0...1, step: 0.01)
-                                    .padding([.horizontal, .bottom])
-                                    .onChange(of: g, perform: sliderColorGChanged)
-                            }
-                            HStack {
-                                Text("B")
-                                Slider(value: $b, in: 0...1, step: 0.01)
-                                    .padding([.horizontal, .bottom])
-                                    .onChange(of: b, perform: sliderColorBChanged)
-                            }
-                            
-                        }
-                        .padding()
-                        .background(Color(red: r, green: g, blue: b))  // gives preview of chosen color
-                    }
-                    .padding()
-                }
+                // shows different information here (user color settings, size settings)
+                NavigationLink("Object Info", destination: ObjectSettings(height: $boxHeight, width: $boxWidth, r: $r, g: $g, b: $b))
+                Spacer()
             }
         }
     }
@@ -233,8 +248,12 @@ struct ContentView: View {
         shapeConfig.b = newValue
     }
     
-    private func sliderBoxSizeChanged(to newValue: Double) {
-        shapeConfig.size = Double(newValue.rounded())
+    private func sliderBoxHeightChanged(to newValue: Double) {
+        shapeConfig.boxHeight = Double(newValue.rounded())
+    }
+    
+    private func sliderBoxWidthChanged(to newValue: Double) {
+        shapeConfig.boxWidth = Double(newValue.rounded())
     }
     
     private func shapeChanged(to newValue: String) {
