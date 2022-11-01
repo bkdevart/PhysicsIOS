@@ -14,7 +14,18 @@
 - Interaction
  - Add drag and drop method to adding shapes
  - Tap shape to remove shape
- - Add clear all button
+ - have mode that pauses physics/other interactions and allows you to place items locked in place
+ 
+ Bugs
+ - Drag mode
+    - crashes if dragging too fast
+    - crashes if dragging objects off screen
+    - crashes if dragging painted objects
+ 
+ Game ideas
+ - Wrecking ball
+ - Obstacle navigation
+ - Boom blox
  */
 //
 
@@ -28,7 +39,7 @@ enum Shape: String, CaseIterable, Identifiable {
 }
 
 enum AddMethod: String, CaseIterable, Identifiable {
-    case pour, drag, paint
+    case pour, drag, paint, clear
     var id: Self { self }
 }
 
@@ -45,6 +56,9 @@ class UIJoin: ObservableObject {
     @Published var addMethod: AddMethod = .pour
     @Published var childNumber = 0
     @Published var children = [SKShapeNode]()
+    @Published var selectedNode = SKNode()
+    @Published var selectedNodes = [SKNode]()
+    
 
     static var shared = UIJoin()
 }
@@ -53,32 +67,30 @@ class GameScene: SKScene {
     
     
     @ObservedObject var controls = UIJoin.shared
-//    var touchLocation = CGPoint?()
     
     // when the scene is presented by the view, didMove activates and triggers the physics engine environment
     override func didMove(to view: SKView) {
         physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
     }
 
-    // TODO: add multiple drop methods
-    /*
-     1. tap and drop (original)
-     2. touch and hold (pour shapes)
-     3. touch once to place, then drag and drop when let go
-     */
 
     /*
      https://mammothinteractive.com/touches-and-moving-sprites-in-xcode-spritekit-swift-crash-course-free-tutorial/
      */
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         switch controls.addMethod {
+        case .clear:
+            removeAllChildren()
         case .drag:
-            // TODO: look into this code for drag and drop
-//                let location = touch.location(in: self)
-//                let touchedNodes = nodes(at: location)
-//                let frontTouchedNode = atPoint(location).name
-//                print("Paint node touched: \(String(describing: frontTouchedNode))")
-            print("Dragging!")
+            for touch in touches {
+                let location = touch.location(in: self)
+                // TODO: need to make sure selectedNode exists (may be causing crash)
+                // 1 - check that selectedNode is not null
+                // 2 - select scene camera otherwise?  this would be good way to begin making playground more defined
+                print("Dragging")
+                controls.selectedNode.position = location
+//                controls.selectedNode.position = CGPoint(x: controls.selectedNode.position.x, y:controls.selectedNode.position.y)
+            }
         case .pour:
             for touch in touches{
                 let location = touch.location(in: self)
@@ -138,7 +150,6 @@ class GameScene: SKScene {
                     triangle.strokeColor = UIColor(chosenColor)
                     triangle.position = location
                     triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
-                    // TODO: figure out what addChild is being called with
                     addChild(triangle)
                     controls.children.append(triangle)
                 }
@@ -226,12 +237,16 @@ class GameScene: SKScene {
                                        green: controls.g,
                                        blue: controls.b)
         // basic shapes
-        print(controls.selectedShape)
         
         // TODO: behavior will vary based on pour/drag selection for final rendering of shapes
         switch controls.addMethod {
+        case .clear:
+            removeAllChildren()
         case .drag:
             print("Drag touch start!")
+            let touchedNodes = nodes(at: location)
+            print("drag - touched nodes: \(String(describing: touchedNodes))")
+            controls.selectedNode = touchedNodes[0]
         case .pour:
             // render shapes continuously while user drags finger
             switch controls.selectedShape {
@@ -439,7 +454,7 @@ struct ContentView: View {
                     }
                     .padding()
                 }
-                
+                // TODO: figure out how to get a reference to this object
                 GeometryReader { geometry in
                     let width = geometry.size.width
 //                    let height = geometry.size.height
@@ -450,11 +465,11 @@ struct ContentView: View {
                         .ignoresSafeArea()
                 }
                 // choose how to add shapes to the physics environment
-                Button("Clear All", action: clearAll)
                 Picker("AddMethod", selection: $addMethod) {
                     Text("Pour").tag(AddMethod.pour)
                     Text("Paint").tag(AddMethod.paint)
                     Text("Drag").tag(AddMethod.drag)
+                    Text("Clear").tag(AddMethod.clear)
                 }
                 .onChange(of: addMethod, perform: addMethodChanged)
                 // shows different information here (user color settings, size settings)
@@ -492,11 +507,6 @@ struct ContentView: View {
     
     private func addMethodChanged(to newValue: AddMethod) {
         shapeConfig.addMethod = newValue
-    }
-    
-    private func clearAll() {
-        print(scene.children)
-        scene.removeAllChildren()
     }
 }
 
