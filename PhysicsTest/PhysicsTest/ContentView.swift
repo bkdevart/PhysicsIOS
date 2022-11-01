@@ -86,10 +86,12 @@ class GameScene: SKScene {
                 let location = touch.location(in: self)
                 // TODO: need to make sure selectedNode exists (may be causing crash)
                 // 1 - check that selectedNode is not null
+                
+                if touchedNodes.count > 0 {
+                    
+                }
                 // 2 - select scene camera otherwise?  this would be good way to begin making playground more defined
-                print("Dragging")
                 controls.selectedNode.position = location
-//                controls.selectedNode.position = CGPoint(x: controls.selectedNode.position.x, y:controls.selectedNode.position.y)
             }
         case .pour:
             for touch in touches{
@@ -236,17 +238,17 @@ class GameScene: SKScene {
         let chosenColor: Color = Color(red: controls.r,
                                        green: controls.g,
                                        blue: controls.b)
-        // basic shapes
         
-        // TODO: behavior will vary based on pour/drag selection for final rendering of shapes
         switch controls.addMethod {
         case .clear:
             removeAllChildren()
         case .drag:
-            print("Drag touch start!")
             let touchedNodes = nodes(at: location)
-            print("drag - touched nodes: \(String(describing: touchedNodes))")
-            controls.selectedNode = touchedNodes[0]
+            controls.selectedNodes = touchedNodes
+            // will crash here if no nodes are touched
+            if touchedNodes.count > 0 {
+                controls.selectedNode = touchedNodes[0]
+            }
         case .pour:
             // render shapes continuously while user drags finger
             switch controls.selectedShape {
@@ -263,10 +265,8 @@ class GameScene: SKScene {
                 box.strokeColor = UIColor(chosenColor)
                 box.position = location
                 box.physicsBody = SKPhysicsBody(polygonFrom: path)
-                // TODO: figure out what addChild is being called with
                 addChild(box)
                 controls.children.append(box)
-                // TODO: can use path method to create more complicated shapes, and allow user to do so themselves
             case .circle:
                 print("Circle")
                 let path = CGMutablePath()
@@ -297,7 +297,6 @@ class GameScene: SKScene {
                 triangle.strokeColor = UIColor(chosenColor)
                 triangle.position = location
                 triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
-                // TODO: figure out what addChild is being called with
                 addChild(triangle)
                 controls.children.append(triangle)
             }
@@ -318,10 +317,8 @@ class GameScene: SKScene {
                 box.strokeColor = UIColor(chosenColor)
                 box.position = location
                 //                box.physicsBody = SKPhysicsBody(polygonFrom: path)
-                // TODO: figure out what addChild is being called with
                 addChild(box)
                 controls.children.append(box)
-                // TODO: can use path method to create more complicated shapes, and allow user to do so themselves
             case .circle:
                 print("Circle")
                 let path = CGMutablePath()
@@ -352,13 +349,10 @@ class GameScene: SKScene {
                 triangle.strokeColor = UIColor(chosenColor)
                 triangle.position = location
 //                triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
-                // TODO: figure out what addChild is being called with
                 addChild(triangle)
                 controls.children.append(triangle)
             }
         }
-    
-        print("object height/width: \(boxWidth), r:  \(controls.r), g:  \(controls.g), b:  \(controls.b)")
     }
 }
 
