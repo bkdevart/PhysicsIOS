@@ -9,18 +9,15 @@
  - Physics environment
     - be able to pause environment at any time, then switch factors like gravity, friction, etc and see what happens
     - be able to switch between many different environment parameters
+    - be able to save environment and load later
+        - can also be used to solve navigational issues when switching screens
  - Shapes
     - make user-defined shapes
-- Interaction
- - Add drag and drop method to adding shapes
- - Tap shape to remove shape
- - have mode that pauses physics/other interactions and allows you to place items locked in place
+ - Interaction
+    - have mode that pauses physics/other interactions and allows you to place items locked in place
  
  Bugs
- - Drag mode
-    - crashes if dragging too fast
-    - crashes if dragging objects off screen
-    - crashes if dragging painted objects
+ -
  
  Game ideas
  - Wrecking ball
@@ -80,35 +77,31 @@ class GameScene: SKScene {
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         switch controls.addMethod {
         case .clear:
-            removeAllChildren()
+            print("Will think about this clear method dragging finger")
+//            removeAllChildren()
         case .drag:
             for touch in touches {
                 let location = touch.location(in: self)
-                // TODO: need to make sure selectedNode exists (may be causing crash)
+                // make sure selectedNode exists (may be causing crash)
                 // 1 - check that selectedNode is not null
-                
-                if touchedNodes.count > 0 {
-                    
+                if controls.selectedNodes.count > 0 {
+                    controls.selectedNode.position = location
                 }
                 // 2 - select scene camera otherwise?  this would be good way to begin making playground more defined
-                controls.selectedNode.position = location
+                
             }
         case .pour:
             for touch in touches{
                 let location = touch.location(in: self)
                 let boxWidth = Int((controls.boxWidth / 100.0) * Double(controls.screenWidth))
                 let boxHeight = Int((controls.boxHeight / 100.0) * Double(controls.screenHeight))
-                print("Box height: \(boxHeight)")
-                print("Box width: \(boxWidth)")
                 // each color betwen 0 and 1 (based on slider)
                 let chosenColor: Color = Color(red: controls.r,
                                                green: controls.g,
                                                blue: controls.b)
                 // basic shapes
-                print(controls.selectedShape)
                 switch controls.selectedShape {
                 case .rectangle:
-                    print("Rectangle")
                     let path = CGMutablePath()
                     let box_half = Int(boxWidth) / 2
                     path.move(to: CGPoint(x: -box_half, y: Int(boxHeight)))  // upper left corner
@@ -123,7 +116,6 @@ class GameScene: SKScene {
                     addChild(box)
                     controls.children.append(box)
                 case .circle:
-                    print("Circle")
                     let path = CGMutablePath()
                     path.addArc(center: CGPoint.zero,
                                 radius: CGFloat(Int(boxWidth) / 2),
@@ -138,7 +130,6 @@ class GameScene: SKScene {
                     addChild(ball)
                     controls.children.append(ball)
                 case .triangle:
-                    print("Triangle")
                     let path = CGMutablePath()
                     // TODO: try two side lengths and an angle, infer 3rd size
                     // center shape around x=0
@@ -155,24 +146,19 @@ class GameScene: SKScene {
                     addChild(triangle)
                     controls.children.append(triangle)
                 }
-                print("object height/width: \(boxWidth), r:  \(controls.r), g:  \(controls.g), b:  \(controls.b)")
             }
         case .paint:
             for touch in touches{
                 let location = touch.location(in: self)
                 let boxWidth = Int((controls.boxWidth / 100.0) * Double(controls.screenWidth))
                 let boxHeight = Int((controls.boxHeight / 100.0) * Double(controls.screenHeight))
-                print("Box height: \(boxHeight)")
-                print("Box width: \(boxWidth)")
                 // each color betwen 0 and 1 (based on slider)
                 let chosenColor: Color = Color(red: controls.r,
                                                green: controls.g,
                                                blue: controls.b)
                 // basic shapes
-                print(controls.selectedShape)
                 switch controls.selectedShape {
                 case .rectangle:
-                    print("Rectangle")
                     let path = CGMutablePath()
                     let box_half = Int(boxWidth) / 2
                     path.move(to: CGPoint(x: -box_half, y: Int(boxHeight)))  // upper left corner
@@ -187,7 +173,6 @@ class GameScene: SKScene {
                     addChild(box)
                     controls.children.append(box)
                 case .circle:
-                    print("Circle")
                     let path = CGMutablePath()
                     path.addArc(center: CGPoint.zero,
                                 radius: CGFloat(Int(boxWidth) / 2),
@@ -202,7 +187,6 @@ class GameScene: SKScene {
                     addChild(ball)
                     controls.children.append(ball)
                 case .triangle:
-                    print("Triangle")
                     let path = CGMutablePath()
                     // TODO: try two side lengths and an angle, infer 3rd size
                     // center shape around x=0
@@ -216,12 +200,9 @@ class GameScene: SKScene {
                     triangle.strokeColor = UIColor(chosenColor)
                     triangle.position = location
 //                    triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
-                    // TODO: figure out what addChild is being called with
                     addChild(triangle)
                     controls.children.append(triangle)
                 }
-                print("object height/width: \(boxWidth), r:  \(controls.r), g:  \(controls.g), b:  \(controls.b)")
-//                print("object height/width: \(boxWidth), r:  \(controls.r), g:  \(controls.g), b:  \(controls.b)")
             }
         }
     }
@@ -232,8 +213,6 @@ class GameScene: SKScene {
         // user can choose height and width
         let boxWidth = Int((controls.boxWidth / 100.0) * Double(controls.screenWidth))
         let boxHeight = Int((controls.boxHeight / 100.0) * Double(controls.screenHeight))
-        print("Box height: \(boxHeight)")
-        print("Box width: \(boxWidth)")
         // each color betwen 0 and 1 (based on slider)
         let chosenColor: Color = Color(red: controls.r,
                                        green: controls.g,
@@ -241,19 +220,29 @@ class GameScene: SKScene {
         
         switch controls.addMethod {
         case .clear:
-            removeAllChildren()
+            // select node and delete only that one
+            let touchedNodes = nodes(at: location)
+            controls.selectedNodes = touchedNodes
+            // will crash here if no nodes are touched
+            if touchedNodes.count > 0 {
+                controls.selectedNode = touchedNodes[0]
+            } else {
+                controls.selectedNode = SKNode()
+            }
+            controls.selectedNode.removeFromParent()
         case .drag:
             let touchedNodes = nodes(at: location)
             controls.selectedNodes = touchedNodes
             // will crash here if no nodes are touched
             if touchedNodes.count > 0 {
                 controls.selectedNode = touchedNodes[0]
+            } else {
+                controls.selectedNode = SKNode()
             }
         case .pour:
             // render shapes continuously while user drags finger
             switch controls.selectedShape {
             case .rectangle:
-                print("Rectangle")
                 let path = CGMutablePath()
                 let box_half = Int(boxWidth) / 2
                 path.move(to: CGPoint(x: -box_half, y: Int(boxHeight)))  // upper left corner
@@ -268,7 +257,6 @@ class GameScene: SKScene {
                 addChild(box)
                 controls.children.append(box)
             case .circle:
-                print("Circle")
                 let path = CGMutablePath()
                 path.addArc(center: CGPoint.zero,
                             radius: CGFloat(Int(boxWidth) / 2),
@@ -283,7 +271,6 @@ class GameScene: SKScene {
                 addChild(ball)
                 controls.children.append(ball)
             case .triangle:
-                print("Triangle")
                 let path = CGMutablePath()
                 // TODO: try two side lengths and an angle, infer 3rd size
                 // center shape around x=0
@@ -301,11 +288,9 @@ class GameScene: SKScene {
                 controls.children.append(triangle)
             }
         case .paint:
-            print("Paint!")
             // render shape when user taps here, don't add gravity until user drags and releases (touchesMoved())
             switch controls.selectedShape {
             case .rectangle:
-                print("Rectangle")
                 let path = CGMutablePath()
                 let box_half = Int(boxWidth) / 2
                 path.move(to: CGPoint(x: -box_half, y: Int(boxHeight)))  // upper left corner
@@ -320,7 +305,6 @@ class GameScene: SKScene {
                 addChild(box)
                 controls.children.append(box)
             case .circle:
-                print("Circle")
                 let path = CGMutablePath()
                 path.addArc(center: CGPoint.zero,
                             radius: CGFloat(Int(boxWidth) / 2),
@@ -335,7 +319,6 @@ class GameScene: SKScene {
                 addChild(ball)
                 controls.children.append(ball)
             case .triangle:
-                print("Triangle")
                 let path = CGMutablePath()
                 // TODO: try two side lengths and an angle, infer 3rd size
                 // center shape around x=0
