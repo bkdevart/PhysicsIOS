@@ -56,6 +56,8 @@ class UIJoin: ObservableObject {
     @Published var selectedNode = SKNode()
     @Published var selectedNodes = [SKNode]()
     
+    // can you capture game scene here?
+    @Published var gameScene = SKScene()
 
     static var shared = UIJoin()
 }
@@ -366,6 +368,8 @@ struct ContentView: View {
         let maxWidth = shapeConfig.screenWidth  // 1170
         scene.size = CGSize(width: maxWidth, height: maxHeight)
         scene.scaleMode = .fill
+        // store in observable object
+        shapeConfig.gameScene = scene
         return scene
     }
 
@@ -451,6 +455,9 @@ struct ContentView: View {
                 .onChange(of: addMethod, perform: addMethodChanged)
                 // shows different information here (user color settings, size settings)
                 NavigationLink("Object Info", destination: ObjectSettings(height: $boxHeight, width: $boxWidth, r: $r, g: $g, b: $b))
+                Button(action: clearAll) {
+                    Text("Clear All")
+                }
                 Spacer()
             }
         }
@@ -484,6 +491,10 @@ struct ContentView: View {
     
     private func addMethodChanged(to newValue: AddMethod) {
         shapeConfig.addMethod = newValue
+    }
+    
+    private func clearAll() {
+        shapeConfig.gameScene.removeAllChildren()
     }
 }
 
