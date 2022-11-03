@@ -15,9 +15,14 @@
     - make user-defined shapes
  - Interaction
     - have mode that pauses physics/other interactions and allows you to place items locked in place
+    - combine drag and pour methods into dynamic action
+        - if tapping a node, go into drag mode
+        - if not tapping a node, go into drop/pour mode based on if tap or drag motion
+        - have toggle mode for clearing nodes (on/off switch)
+        - add paint mode switch
  
  Bugs
- -
+ - Remove All button doesn't seem to work as intended (once switching to a new shape or add method it fails to work)
  
  Game ideas
  - Wrecking ball
@@ -47,14 +52,15 @@ class UIJoin: ObservableObject {
     @Published var b = 0.7
     @Published var selectedShape: Shape = .rectangle
     @Published var screenWidth = 428
-    @Published var screenHeight = 478
+    @Published var screenHeight = 478  // TODO: set to same as height to preserve square?
     @Published var boxHeight = 5.0
     @Published var boxWidth = 5.0
     @Published var addMethod: AddMethod = .pour
-    @Published var childNumber = 0
-    @Published var children = [SKShapeNode]()
+//    @Published var childNumber = 0
+//    @Published var children = [SKShapeNode]()
     @Published var selectedNode = SKNode()
     @Published var selectedNodes = [SKNode]()
+    @Published var removeOn = false
     
     // can you capture game scene here?
     @Published var gameScene = SKScene()
@@ -116,7 +122,7 @@ class GameScene: SKScene {
                     box.position = location
                     box.physicsBody = SKPhysicsBody(polygonFrom: path)
                     addChild(box)
-                    controls.children.append(box)
+//                    controls.children.append(box)
                 case .circle:
                     let path = CGMutablePath()
                     path.addArc(center: CGPoint.zero,
@@ -130,7 +136,7 @@ class GameScene: SKScene {
                     ball.position = location
                     ball.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(Int(boxWidth) / 2))
                     addChild(ball)
-                    controls.children.append(ball)
+//                    controls.children.append(ball)
                 case .triangle:
                     let path = CGMutablePath()
                     // TODO: try two side lengths and an angle, infer 3rd size
@@ -146,7 +152,7 @@ class GameScene: SKScene {
                     triangle.position = location
                     triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
                     addChild(triangle)
-                    controls.children.append(triangle)
+//                    controls.children.append(triangle)
                 }
             }
         case .paint:
@@ -173,7 +179,7 @@ class GameScene: SKScene {
                     box.position = location
 //                    box.physicsBody = SKPhysicsBody(polygonFrom: path)
                     addChild(box)
-                    controls.children.append(box)
+//                    controls.children.append(box)
                 case .circle:
                     let path = CGMutablePath()
                     path.addArc(center: CGPoint.zero,
@@ -187,7 +193,7 @@ class GameScene: SKScene {
                     ball.position = location
 //                    ball.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(Int(boxWidth) / 2))
                     addChild(ball)
-                    controls.children.append(ball)
+//                    controls.children.append(ball)
                 case .triangle:
                     let path = CGMutablePath()
                     // TODO: try two side lengths and an angle, infer 3rd size
@@ -203,7 +209,7 @@ class GameScene: SKScene {
                     triangle.position = location
 //                    triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
                     addChild(triangle)
-                    controls.children.append(triangle)
+//                    controls.children.append(triangle)
                 }
             }
         }
@@ -257,7 +263,7 @@ class GameScene: SKScene {
                 box.position = location
                 box.physicsBody = SKPhysicsBody(polygonFrom: path)
                 addChild(box)
-                controls.children.append(box)
+//                controls.children.append(box)
             case .circle:
                 let path = CGMutablePath()
                 path.addArc(center: CGPoint.zero,
@@ -271,7 +277,7 @@ class GameScene: SKScene {
                 ball.position = location
                 ball.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(Int(boxWidth) / 2))
                 addChild(ball)
-                controls.children.append(ball)
+//                controls.children.append(ball)
             case .triangle:
                 let path = CGMutablePath()
                 // TODO: try two side lengths and an angle, infer 3rd size
@@ -287,7 +293,7 @@ class GameScene: SKScene {
                 triangle.position = location
                 triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
                 addChild(triangle)
-                controls.children.append(triangle)
+//                controls.children.append(triangle)
             }
         case .paint:
             // render shape when user taps here, don't add gravity until user drags and releases (touchesMoved())
@@ -305,7 +311,7 @@ class GameScene: SKScene {
                 box.position = location
                 //                box.physicsBody = SKPhysicsBody(polygonFrom: path)
                 addChild(box)
-                controls.children.append(box)
+//                controls.children.append(box)
             case .circle:
                 let path = CGMutablePath()
                 path.addArc(center: CGPoint.zero,
@@ -319,7 +325,7 @@ class GameScene: SKScene {
                 ball.position = location
 //                ball.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(Int(boxWidth) / 2))
                 addChild(ball)
-                controls.children.append(ball)
+//                controls.children.append(ball)
             case .triangle:
                 let path = CGMutablePath()
                 // TODO: try two side lengths and an angle, infer 3rd size
@@ -335,7 +341,7 @@ class GameScene: SKScene {
                 triangle.position = location
 //                triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
                 addChild(triangle)
-                controls.children.append(triangle)
+//                controls.children.append(triangle)
             }
         }
     }
@@ -351,7 +357,7 @@ struct ContentView: View {
     @State private var b = 0.7
     
     // using this to track box size and color selection as it changes
-    let shapeConfig = UIJoin.shared
+    let controls = UIJoin.shared
     
     /*
      May have to read https://github.com/joshuajhomann/SwiftUI-Spirograph to get combine to work with geometry reader to get proper scene.size set (hardcoded to iPhone 13 pro right now)
@@ -360,16 +366,22 @@ struct ContentView: View {
     // houses shape picker selection
     @State private var selectedShape: Shape = .rectangle
     @State private var addMethod: AddMethod = .pour
+//    @State private var removeOn: Bool = false
+    @State var removeOn: Bool = false {
+            didSet {
+                controls.removeOn = removeOn
+            }
+        }
     
     var scene: SKScene {
         let scene = GameScene()
         // TODO: make sure dynamic sizing is working properly
-        let maxHeight = shapeConfig.screenHeight  // 2532
-        let maxWidth = shapeConfig.screenWidth  // 1170
+        let maxHeight = controls.screenHeight  // 2532
+        let maxWidth = controls.screenWidth  // 1170
         scene.size = CGSize(width: maxWidth, height: maxHeight)
         scene.scaleMode = .fill
         // store in observable object
-        shapeConfig.gameScene = scene
+        controls.gameScene = scene
         return scene
     }
 
@@ -446,19 +458,26 @@ struct ContentView: View {
                         .ignoresSafeArea()
                 }
                 // choose how to add shapes to the physics environment
+                Toggle("Remove", isOn: $removeOn)
+//                    .onUpdate({controls.removeOn = removeOn})
+//                    .onChange(of: removeOn, perform: updateRemoveToggle)
                 Picker("AddMethod", selection: $addMethod) {
                     Text("Pour").tag(AddMethod.pour)
-                    Text("Paint").tag(AddMethod.paint)
                     Text("Drag").tag(AddMethod.drag)
-                    Text("Clear").tag(AddMethod.clear)
+                    Text("Remove").tag(AddMethod.clear)
+                    Text("Paint").tag(AddMethod.paint)
                 }
                 .onChange(of: addMethod, perform: addMethodChanged)
-                // shows different information here (user color settings, size settings)
-                NavigationLink("Object Info", destination: ObjectSettings(height: $boxHeight, width: $boxWidth, r: $r, g: $g, b: $b))
-                Button(action: clearAll) {
-                    Text("Clear All")
+                HStack {
+                    // shows different information here (user color settings, size settings)
+                    Spacer()
+                    Button(action: removeAll) {
+                        Text("Remove All")
+                    }
+                    Spacer()
+                    NavigationLink("Object Info", destination: ObjectSettings(height: $boxHeight, width: $boxWidth, r: $r, g: $g, b: $b))
+                    Spacer()
                 }
-                Spacer()
             }
         }
     }
@@ -466,35 +485,39 @@ struct ContentView: View {
     
     
     private func sliderColorRChanged(to newValue: Double) {
-        shapeConfig.r = newValue
+        controls.r = newValue
     }
     
     private func sliderColorGChanged(to newValue: Double) {
-        shapeConfig.g = newValue
+        controls.g = newValue
     }
     
     private func sliderColorBChanged(to newValue: Double) {
-        shapeConfig.b = newValue
+        controls.b = newValue
     }
     
     private func sliderBoxHeightChanged(to newValue: Double) {
-        shapeConfig.boxHeight = Double(newValue.rounded())
+        controls.boxHeight = Double(newValue.rounded())
     }
     
     private func sliderBoxWidthChanged(to newValue: Double) {
-        shapeConfig.boxWidth = Double(newValue.rounded())
+        controls.boxWidth = Double(newValue.rounded())
     }
     
     private func shapeChanged(to newValue: Shape) {
-        shapeConfig.selectedShape = newValue
+        controls.selectedShape = newValue
     }
     
     private func addMethodChanged(to newValue: AddMethod) {
-        shapeConfig.addMethod = newValue
+        controls.addMethod = newValue
     }
     
-    private func clearAll() {
-        shapeConfig.gameScene.removeAllChildren()
+    private func removeAll() {
+        controls.gameScene.removeAllChildren()
+    }
+    
+    private func updateRemoveToggle() {
+        controls.removeOn = removeOn
     }
 }
 
