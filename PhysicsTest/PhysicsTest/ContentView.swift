@@ -41,7 +41,7 @@ enum Shape: String, CaseIterable, Identifiable {
 }
 
 enum AddMethod: String, CaseIterable, Identifiable {
-    case pour, drag, paint, clear
+    case add, paint, clear
     var id: Self { self }
 }
 
@@ -55,7 +55,7 @@ class UIJoin: ObservableObject {
     @Published var screenHeight = 478  // TODO: set to same as height to preserve square?
     @Published var boxHeight = 5.0
     @Published var boxWidth = 5.0
-    @Published var addMethod: AddMethod = .pour
+    @Published var addMethod: AddMethod = .add
 //    @Published var childNumber = 0
 //    @Published var children = [SKShapeNode]()
     @Published var selectedNode = SKNode()
@@ -87,73 +87,69 @@ class GameScene: SKScene {
         case .clear:
             print("Will think about this clear method dragging finger")
 //            removeAllChildren()
-        case .drag:
+        case .add:
             for touch in touches {
                 let location = touch.location(in: self)
-                // make sure selectedNode exists (may be causing crash)
-                // 1 - check that selectedNode is not null
+                // TODO: do drag code
                 if controls.selectedNodes.count > 0 {
                     controls.selectedNode.position = location
+                } else {
+                    // TODO: do pour code
+                    let boxWidth = Int((controls.boxWidth / 100.0) * Double(controls.screenWidth))
+                    let boxHeight = Int((controls.boxHeight / 100.0) * Double(controls.screenHeight))
+                    // each color betwen 0 and 1 (based on slider)
+                    let chosenColor: Color = Color(red: controls.r,
+                                                   green: controls.g,
+                                                   blue: controls.b)
+                    // basic shapes
+                    switch controls.selectedShape {
+                    case .rectangle:
+                        let path = CGMutablePath()
+                        let box_half = Int(boxWidth) / 2
+                        path.move(to: CGPoint(x: -box_half, y: Int(boxHeight)))  // upper left corner
+                        path.addLine(to: CGPoint(x: box_half, y: Int(boxHeight)))  // upper right corner
+                        path.addLine(to: CGPoint(x: box_half, y: 0)) // bottom right corner
+                        path.addLine(to: CGPoint(x: -box_half, y: 0))  // bottom left corner
+                        let box = SKShapeNode(path: path)
+                        box.fillColor = UIColor(chosenColor)
+                        box.strokeColor = UIColor(chosenColor)
+                        box.position = location
+                        box.physicsBody = SKPhysicsBody(polygonFrom: path)
+                        addChild(box)
+                        //                    controls.children.append(box)
+                    case .circle:
+                        let path = CGMutablePath()
+                        path.addArc(center: CGPoint.zero,
+                                    radius: CGFloat(Int(boxWidth) / 2),
+                                    startAngle: 0,
+                                    endAngle: CGFloat.pi * 2,
+                                    clockwise: true)
+                        let ball = SKShapeNode(path: path)
+                        ball.fillColor = UIColor(chosenColor)
+                        ball.strokeColor = UIColor(chosenColor)
+                        ball.position = location
+                        ball.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(Int(boxWidth) / 2))
+                        addChild(ball)
+                        //                    controls.children.append(ball)
+                    case .triangle:
+                        let path = CGMutablePath()
+                        // TODO: try two side lengths and an angle, infer 3rd size
+                        // center shape around x=0
+                        let triangle_half = Int(boxWidth) / 2
+                        path.move(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // triangle top
+                        path.addLine(to: CGPoint(x: triangle_half, y: 0))  // bottom right corner
+                        path.addLine(to: CGPoint(x: -triangle_half, y: 0))  // bottom left corner
+                        path.addLine(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // back to triangle top (not needed)
+                        let triangle = SKShapeNode(path: path)
+                        triangle.fillColor = UIColor(chosenColor)
+                        triangle.strokeColor = UIColor(chosenColor)
+                        triangle.position = location
+                        triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
+                        addChild(triangle)
+                        //                    controls.children.append(triangle)
+                    }
                 }
-                // 2 - select scene camera otherwise?  this would be good way to begin making playground more defined
                 
-            }
-        case .pour:
-            for touch in touches{
-                let location = touch.location(in: self)
-                let boxWidth = Int((controls.boxWidth / 100.0) * Double(controls.screenWidth))
-                let boxHeight = Int((controls.boxHeight / 100.0) * Double(controls.screenHeight))
-                // each color betwen 0 and 1 (based on slider)
-                let chosenColor: Color = Color(red: controls.r,
-                                               green: controls.g,
-                                               blue: controls.b)
-                // basic shapes
-                switch controls.selectedShape {
-                case .rectangle:
-                    let path = CGMutablePath()
-                    let box_half = Int(boxWidth) / 2
-                    path.move(to: CGPoint(x: -box_half, y: Int(boxHeight)))  // upper left corner
-                    path.addLine(to: CGPoint(x: box_half, y: Int(boxHeight)))  // upper right corner
-                    path.addLine(to: CGPoint(x: box_half, y: 0)) // bottom right corner
-                    path.addLine(to: CGPoint(x: -box_half, y: 0))  // bottom left corner
-                    let box = SKShapeNode(path: path)
-                    box.fillColor = UIColor(chosenColor)
-                    box.strokeColor = UIColor(chosenColor)
-                    box.position = location
-                    box.physicsBody = SKPhysicsBody(polygonFrom: path)
-                    addChild(box)
-//                    controls.children.append(box)
-                case .circle:
-                    let path = CGMutablePath()
-                    path.addArc(center: CGPoint.zero,
-                                radius: CGFloat(Int(boxWidth) / 2),
-                                startAngle: 0,
-                                endAngle: CGFloat.pi * 2,
-                                clockwise: true)
-                    let ball = SKShapeNode(path: path)
-                    ball.fillColor = UIColor(chosenColor)
-                    ball.strokeColor = UIColor(chosenColor)
-                    ball.position = location
-                    ball.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(Int(boxWidth) / 2))
-                    addChild(ball)
-//                    controls.children.append(ball)
-                case .triangle:
-                    let path = CGMutablePath()
-                    // TODO: try two side lengths and an angle, infer 3rd size
-                    // center shape around x=0
-                    let triangle_half = Int(boxWidth) / 2
-                    path.move(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // triangle top
-                    path.addLine(to: CGPoint(x: triangle_half, y: 0))  // bottom right corner
-                    path.addLine(to: CGPoint(x: -triangle_half, y: 0))  // bottom left corner
-                    path.addLine(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // back to triangle top (not needed)
-                    let triangle = SKShapeNode(path: path)
-                    triangle.fillColor = UIColor(chosenColor)
-                    triangle.strokeColor = UIColor(chosenColor)
-                    triangle.position = location
-                    triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
-                    addChild(triangle)
-//                    controls.children.append(triangle)
-                }
             }
         case .paint:
             for touch in touches{
@@ -238,62 +234,68 @@ class GameScene: SKScene {
                 controls.selectedNode = SKNode()
             }
             controls.selectedNode.removeFromParent()
-        case .drag:
+        case .add:
+            // render shapes continuously while user drags finger
+            
             let touchedNodes = nodes(at: location)
             controls.selectedNodes = touchedNodes
             // will crash here if no nodes are touched
             if touchedNodes.count > 0 {
+                // log node so that drag motion works
                 controls.selectedNode = touchedNodes[0]
+                // TODO: if removeOn is set, clear node
+                if controls.removeOn {
+                    controls.selectedNode.removeFromParent()
+                }
             } else {
-                controls.selectedNode = SKNode()
-            }
-        case .pour:
-            // render shapes continuously while user drags finger
-            switch controls.selectedShape {
-            case .rectangle:
-                let path = CGMutablePath()
-                let box_half = Int(boxWidth) / 2
-                path.move(to: CGPoint(x: -box_half, y: Int(boxHeight)))  // upper left corner
-                path.addLine(to: CGPoint(x: box_half, y: Int(boxHeight)))  // upper right corner
-                path.addLine(to: CGPoint(x: box_half, y: 0)) // bottom right corner
-                path.addLine(to: CGPoint(x: -box_half, y: 0))  // bottom left corner
-                let box = SKShapeNode(path: path)
-                box.fillColor = UIColor(chosenColor)
-                box.strokeColor = UIColor(chosenColor)
-                box.position = location
-                box.physicsBody = SKPhysicsBody(polygonFrom: path)
-                addChild(box)
-//                controls.children.append(box)
-            case .circle:
-                let path = CGMutablePath()
-                path.addArc(center: CGPoint.zero,
-                            radius: CGFloat(Int(boxWidth) / 2),
-                            startAngle: 0,
-                            endAngle: CGFloat.pi * 2,
-                            clockwise: true)
-                let ball = SKShapeNode(path: path)
-                ball.fillColor = UIColor(chosenColor)
-                ball.strokeColor = UIColor(chosenColor)
-                ball.position = location
-                ball.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(Int(boxWidth) / 2))
-                addChild(ball)
-//                controls.children.append(ball)
-            case .triangle:
-                let path = CGMutablePath()
-                // TODO: try two side lengths and an angle, infer 3rd size
-                // center shape around x=0
-                let triangle_half = Int(boxWidth) / 2
-                path.move(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // triangle top
-                path.addLine(to: CGPoint(x: triangle_half, y: 0))  // bottom right corner
-                path.addLine(to: CGPoint(x: -triangle_half, y: 0))  // bottom left corner
-                path.addLine(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // back to triangle top (not needed)
-                let triangle = SKShapeNode(path: path)
-                triangle.fillColor = UIColor(chosenColor)
-                triangle.strokeColor = UIColor(chosenColor)
-                triangle.position = location
-                triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
-                addChild(triangle)
-//                controls.children.append(triangle)
+                // if no nodes touched, add new one
+                controls.selectedNode = SKNode()  // might want to make this addChild elements below in the future
+                switch controls.selectedShape {
+                case .rectangle:
+                    let path = CGMutablePath()
+                    let box_half = Int(boxWidth) / 2
+                    path.move(to: CGPoint(x: -box_half, y: Int(boxHeight)))  // upper left corner
+                    path.addLine(to: CGPoint(x: box_half, y: Int(boxHeight)))  // upper right corner
+                    path.addLine(to: CGPoint(x: box_half, y: 0)) // bottom right corner
+                    path.addLine(to: CGPoint(x: -box_half, y: 0))  // bottom left corner
+                    let box = SKShapeNode(path: path)
+                    box.fillColor = UIColor(chosenColor)
+                    box.strokeColor = UIColor(chosenColor)
+                    box.position = location
+                    box.physicsBody = SKPhysicsBody(polygonFrom: path)
+                    addChild(box)
+                    //                controls.children.append(box)
+                case .circle:
+                    let path = CGMutablePath()
+                    path.addArc(center: CGPoint.zero,
+                                radius: CGFloat(Int(boxWidth) / 2),
+                                startAngle: 0,
+                                endAngle: CGFloat.pi * 2,
+                                clockwise: true)
+                    let ball = SKShapeNode(path: path)
+                    ball.fillColor = UIColor(chosenColor)
+                    ball.strokeColor = UIColor(chosenColor)
+                    ball.position = location
+                    ball.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(Int(boxWidth) / 2))
+                    addChild(ball)
+                    //                controls.children.append(ball)
+                case .triangle:
+                    let path = CGMutablePath()
+                    // TODO: try two side lengths and an angle, infer 3rd size
+                    // center shape around x=0
+                    let triangle_half = Int(boxWidth) / 2
+                    path.move(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // triangle top
+                    path.addLine(to: CGPoint(x: triangle_half, y: 0))  // bottom right corner
+                    path.addLine(to: CGPoint(x: -triangle_half, y: 0))  // bottom left corner
+                    path.addLine(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // back to triangle top (not needed)
+                    let triangle = SKShapeNode(path: path)
+                    triangle.fillColor = UIColor(chosenColor)
+                    triangle.strokeColor = UIColor(chosenColor)
+                    triangle.position = location
+                    triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
+                    addChild(triangle)
+                    //                controls.children.append(triangle)
+                }
             }
         case .paint:
             // render shape when user taps here, don't add gravity until user drags and releases (touchesMoved())
@@ -365,9 +367,10 @@ struct ContentView: View {
 
     // houses shape picker selection
     @State private var selectedShape: Shape = .rectangle
-    @State private var addMethod: AddMethod = .pour
+    @State private var addMethod: AddMethod = .add
 //    @State private var removeOn: Bool = false
     @State var removeOn: Bool = false {
+        // TODO: this does not appear to run
             didSet {
                 controls.removeOn = removeOn
             }
@@ -462,8 +465,7 @@ struct ContentView: View {
 //                    .onUpdate({controls.removeOn = removeOn})
 //                    .onChange(of: removeOn, perform: updateRemoveToggle)
                 Picker("AddMethod", selection: $addMethod) {
-                    Text("Pour").tag(AddMethod.pour)
-                    Text("Drag").tag(AddMethod.drag)
+                    Text("Add").tag(AddMethod.add)
                     Text("Remove").tag(AddMethod.clear)
                     Text("Paint").tag(AddMethod.paint)
                 }
