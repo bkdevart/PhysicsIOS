@@ -60,6 +60,7 @@ class UIJoin: ObservableObject {
     @Published var selectedNodes = [SKNode]()
     @Published var removeOn = false
     @Published var paintLayer = 0
+    @Published var pourOn = false
     
     // can you capture game scene here?
     @Published var gameScene = SKScene()
@@ -100,7 +101,9 @@ class GameScene: SKScene {
                     }
                 } else {
                     // pour code
-                    renderNode(location: location, hasPhysics: true)
+                    if controls.pourOn {
+                        renderNode(location: location, hasPhysics: true)
+                    }
                 }
             }
         case .paint:
@@ -241,15 +244,9 @@ struct ContentView: View {
     // houses shape picker selection
     @State private var selectedShape: Shape = .rectangle
     @State private var addMethod: AddMethod = .add
-//    @State private var removeOn: Bool = false
-//    @State var removeOn: Bool = false {
-//        // TODO: this does not appear to run
-//            didSet {
-//                controls.removeOn = removeOn
-//            }
-//        }
     @State public var removeOn = false
-//    controls.removeOn = removeOn
+    @State public var pourOn = false
+
     
     var scene: SKScene {
         let scene = GameScene()
@@ -335,21 +332,22 @@ struct ContentView: View {
                             .frame(maxWidth: width, maxHeight: width)  // makes things square
                             .ignoresSafeArea()
                     }
-                    // choose to add/remove shapes to the physics environment
-                    Toggle("Remove", isOn: $removeOn)
-                        .onSubmit {
-                            controls.removeOn = removeOn
-                            print("hit remove toggle")
-                        }
-                        .onChange(of: removeOn) { newValue in
-                            controls.removeOn = removeOn
-                        }
-                        .padding()
+                    // choose how to add/remove shapes to the physics environment
                     Picker("AddMethod", selection: $addMethod) {
                         Text("Add").tag(AddMethod.add)
                         Text("Paint").tag(AddMethod.paint)
                     }
                     .onChange(of: addMethod, perform: addMethodChanged)
+                    Toggle("Remove", isOn: $removeOn)
+                        .onChange(of: removeOn) { newValue in
+                            controls.removeOn = removeOn
+                        }
+                        .padding()
+                    Toggle("Pour", isOn: $pourOn)
+                        .onChange(of: pourOn) { newValue in
+                            controls.pourOn = pourOn
+                        }
+                        .padding()
                     HStack {
                         // shows different information here (user color settings, size settings)
                         Spacer()
