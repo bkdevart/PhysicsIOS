@@ -23,6 +23,7 @@
  
  Bugs
  - Remove All button doesn't seem to work as intended (once switching to a new shape or add method it fails to work)
+ - Drag method that checks for background layer makes drag very jittery, sometimes objects drop and return to mouse
  
  Game ideas
  - Wrecking ball
@@ -45,184 +46,6 @@ enum AddMethod: String, CaseIterable, Identifiable {
     var id: Self { self }
 }
 
-// using this to track box size and color selection across views
-class UIJoin: ObservableObject {
-    @Published var r = 0.34
-    @Published var g = 0.74
-    @Published var b = 0.7
-    @Published var selectedShape: Shape = .rectangle
-    @Published var screenWidth = 428
-    @Published var screenHeight = 478  // TODO: set to same as height to preserve square?
-    @Published var boxHeight = 5.0
-    @Published var boxWidth = 5.0
-    @Published var addMethod: AddMethod = .add
-    @Published var selectedNode = SKNode()
-    @Published var selectedNodes = [SKNode]()
-    @Published var removeOn = false
-    @Published var paintLayer = 0
-    @Published var pourOn = false
-    
-    // can you capture game scene here?
-    @Published var gameScene = SKScene()
-    
-    // TODO: capture SwiftUI views in variable here (if possible)
-//    @Published var swiftUIViews = ContentView()
-
-    static var shared = UIJoin()
-}
-
-class GameScene: SKScene {
-    
-    
-    @ObservedObject var controls = UIJoin.shared
-    
-    // when the scene is presented by the view, didMove activates and triggers the physics engine environment
-    override func didMove(to view: SKView) {
-        physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
-    }
-
-    // drag
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        switch controls.addMethod {
-        case .clear:
-            print("Will think about this clear method dragging finger")
-//            removeAllChildren()
-        case .add:
-            for touch in touches {
-                let location = touch.location(in: self)
-                // do drag code
-                if controls.selectedNodes.count > 0 {
-                    // check if it is a paint node
-                    if controls.selectedNode.zPosition != -5 {
-                        controls.selectedNode.position = location
-                    } else {
-                        // TODO: change this function to take location instead
-                        renderNode(location: location, hasPhysics: true)
-                    }
-                } else {
-                    // pour code
-                    if controls.pourOn {
-                        renderNode(location: location, hasPhysics: true)
-                    }
-                }
-            }
-        case .paint:
-            for touch in touches {
-                let location = touch.location(in: self)
-                renderNode(location: location, hasPhysics: false, zPosition: -5)
-            }
-        }
-    }
- 
-    // tap
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
-        let location = touch.location(in: self)
-        
-        switch controls.addMethod {
-        case .clear:
-            // select node and delete only that one
-            let touchedNodes = nodes(at: location)
-            controls.selectedNodes = touchedNodes
-            // will crash here if no nodes are touched
-            if touchedNodes.count > 0 {
-                controls.selectedNode = touchedNodes[0]
-            } else {
-                controls.selectedNode = SKNode()
-            }
-            controls.selectedNode.removeFromParent()
-        case .add:
-            let touchedNodes = nodes(at: location)
-            controls.selectedNodes = touchedNodes
-            // will crash here if no nodes are touched
-            if touchedNodes.count > 0 {
-                // check if selectedNode is paint node
-                if controls.selectedNode.zPosition != -5 {
-                    // log node so that drag motion works
-                    controls.selectedNode = touchedNodes[0]
-                    // TODO: if removeOn is set, clear node (doesn't work yet)
-                    if controls.removeOn {
-                        controls.selectedNode.removeFromParent()
-                    }
-                } else {
-                    // drop new one if paint node selected (can't move paint nodes)
-                    print("You are selecting a paint node and need to drop instead")
-                    renderNode(location: location, hasPhysics: true)
-                }
-            } else {
-                // if no non-paint nodes are touched, then add new one
-                renderNode(location: location, hasPhysics: true)
-            }
-        case .paint:
-            renderNode(location: location, hasPhysics: false, zPosition: -5)
-        }
-    }
-    
-    func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) {
-//        let location = touch.location(in: self)
-        // user can choose height and width
-        let boxWidth = Int((controls.boxWidth / 100.0) * Double(controls.screenWidth))
-        let boxHeight = Int((controls.boxHeight / 100.0) * Double(controls.screenHeight))
-        // each color betwen 0 and 1 (based on slider)
-        let chosenColor: Color = Color(red: controls.r,
-                                       green: controls.g,
-                                       blue: controls.b)
-        
-        controls.selectedNode = SKNode()
-        switch controls.selectedShape {
-        case .rectangle:
-            let path = CGMutablePath()
-            let box_half = Int(boxWidth) / 2
-            path.move(to: CGPoint(x: -box_half, y: Int(boxHeight)))  // upper left corner
-            path.addLine(to: CGPoint(x: box_half, y: Int(boxHeight)))  // upper right corner
-            path.addLine(to: CGPoint(x: box_half, y: 0)) // bottom right corner
-            path.addLine(to: CGPoint(x: -box_half, y: 0))  // bottom left corner
-            let box = SKShapeNode(path: path)
-            box.fillColor = UIColor(chosenColor)
-            box.strokeColor = UIColor(chosenColor)
-            box.position = location
-            box.zPosition = CGFloat(zPosition)
-            if hasPhysics {
-                box.physicsBody = SKPhysicsBody(polygonFrom: path)
-            }
-            addChild(box)
-        case .circle:
-            let path = CGMutablePath()
-            path.addArc(center: CGPoint.zero,
-                        radius: CGFloat(Int(boxWidth) / 2),
-                        startAngle: 0,
-                        endAngle: CGFloat.pi * 2,
-                        clockwise: true)
-            let ball = SKShapeNode(path: path)
-            ball.fillColor = UIColor(chosenColor)
-            ball.strokeColor = UIColor(chosenColor)
-            ball.position = location
-            ball.zPosition = CGFloat(zPosition)
-            if hasPhysics {
-                ball.physicsBody = SKPhysicsBody(polygonFrom: path)
-            }
-            addChild(ball)
-        case .triangle:
-            let path = CGMutablePath()
-            // TODO: try two side lengths and an angle, infer 3rd size
-            // center shape around x=0
-            let triangle_half = Int(boxWidth) / 2
-            path.move(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // triangle top
-            path.addLine(to: CGPoint(x: triangle_half, y: 0))  // bottom right corner
-            path.addLine(to: CGPoint(x: -triangle_half, y: 0))  // bottom left corner
-            path.addLine(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // back to triangle top (not needed)
-            let triangle = SKShapeNode(path: path)
-            triangle.fillColor = UIColor(chosenColor)
-            triangle.strokeColor = UIColor(chosenColor)
-            triangle.position = location
-            triangle.zPosition = CGFloat(zPosition)
-            if hasPhysics {
-                triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
-            }
-            addChild(triangle)
-        }
-    }
-}
 
 
 struct ContentView: View {
@@ -394,12 +217,19 @@ struct ContentView: View {
     }
     
     private func removeAll() {
+        // TODO: find out why refering to gameScene outside of class file doesn't work
+        // controls.gameScene.children shows 0 after shape switch
+        // same happens if choosing color (may be all controls)
+        // try triggering from scene class file
+        let children = controls.gameScene.children
         controls.gameScene.removeAllChildren()
+//        controls.gameScene.clearAll()
+//        clearAll()
     }
     
-    private func updateRemoveToggle() {
-        controls.removeOn = removeOn
-    }
+//    private func updateRemoveToggle() {
+//        controls.removeOn = removeOn
+//    }
 }
 
 
