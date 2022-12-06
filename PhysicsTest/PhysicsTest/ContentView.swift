@@ -22,7 +22,6 @@
         - add paint mode switch
  
  Bugs
- - Remove All button doesn't seem to work as intended (once switching to a new shape or add method it fails to work)
  - Drag method that checks for background layer makes drag very jittery, sometimes objects drop and return to mouse
  
  Game ideas
@@ -217,19 +216,8 @@ struct ContentView: View {
     }
     
     private func removeAll() {
-        // TODO: find out why refering to gameScene outside of class file doesn't work
-        // controls.gameScene.children shows 0 after shape switch
-        // same happens if choosing color (may be all controls)
-        // try triggering from scene class file
-        let children = controls.gameScene.children
         controls.gameScene.removeAllChildren()
-//        controls.gameScene.clearAll()
-//        clearAll()
     }
-    
-//    private func updateRemoveToggle() {
-//        controls.removeOn = removeOn
-//    }
 }
 
 

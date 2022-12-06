@@ -41,7 +41,6 @@ class GameScene: SKScene {
                     if controls.selectedNode.zPosition != -5 {
                         controls.selectedNode.position = location
                     } else {
-                        // TODO: change this function to take location instead
                         let newNode = renderNode(location: location, hasPhysics: true)
                         addChild(newNode)
                     }
@@ -60,6 +59,8 @@ class GameScene: SKScene {
                 addChild(newNode)
             }
         }
+        // this is needed to keep track of all children objects (shape nodes)
+        controls.gameScene = self
     }
  
     // tap
@@ -107,5 +108,7 @@ class GameScene: SKScene {
             let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5)
             addChild(newNode)
         }
+        // this is needed to keep track of all children objects (shape nodes)
+        controls.gameScene = self
     }
 }
