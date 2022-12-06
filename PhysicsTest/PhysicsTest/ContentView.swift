@@ -94,20 +94,23 @@ class GameScene: SKScene {
                     // check if it is a paint node
                     if controls.selectedNode.zPosition != -5 {
                         controls.selectedNode.position = location
+                    } else {
+                        // TODO: change this function to take location instead
+                        renderNode(location: location, hasPhysics: true)
                     }
                 } else {
                     // pour code
-                    renderNode(touch: touch, hasPhysics: true)
+                    renderNode(location: location, hasPhysics: true)
                 }
             }
         case .paint:
             for touch in touches {
-                renderNode(touch: touch, hasPhysics: false, zPosition: -5)
+                let location = touch.location(in: self)
+                renderNode(location: location, hasPhysics: false, zPosition: -5)
             }
         }
     }
  
-    
     // tap
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
@@ -141,19 +144,19 @@ class GameScene: SKScene {
                 } else {
                     // drop new one if paint node selected (can't move paint nodes)
                     print("You are selecting a paint node and need to drop instead")
-                    renderNode(touch: touch, hasPhysics: true)
+                    renderNode(location: location, hasPhysics: true)
                 }
             } else {
                 // if no non-paint nodes are touched, then add new one
-                renderNode(touch: touch, hasPhysics: true)
+                renderNode(location: location, hasPhysics: true)
             }
         case .paint:
-            renderNode(touch: touch, hasPhysics: false, zPosition: -5)
+            renderNode(location: location, hasPhysics: false, zPosition: -5)
         }
     }
     
-    func renderNode(touch: UITouch, hasPhysics: Bool=false, zPosition: Int=0) {
-        let location = touch.location(in: self)
+    func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) {
+//        let location = touch.location(in: self)
         // user can choose height and width
         let boxWidth = Int((controls.boxWidth / 100.0) * Double(controls.screenWidth))
         let boxHeight = Int((controls.boxHeight / 100.0) * Double(controls.screenHeight))
@@ -332,18 +335,18 @@ struct ContentView: View {
                             .frame(maxWidth: width, maxHeight: width)  // makes things square
                             .ignoresSafeArea()
                     }
-                    // choose how to add shapes to the physics environment
+                    // choose to add/remove shapes to the physics environment
                     Toggle("Remove", isOn: $removeOn)
                         .onSubmit {
                             controls.removeOn = removeOn
                             print("hit remove toggle")
                         }
-    //                    .onChange(of: removeOn, perform: {controls.removeOn = removeOn})
-    //                    .onUpdate({controls.removeOn = removeOn})
-//                        .onChange(of: removeOn, perform: updateRemoveToggle)
+                        .onChange(of: removeOn) { newValue in
+                            controls.removeOn = removeOn
+                        }
+                        .padding()
                     Picker("AddMethod", selection: $addMethod) {
                         Text("Add").tag(AddMethod.add)
-                        Text("Remove").tag(AddMethod.clear)
                         Text("Paint").tag(AddMethod.paint)
                     }
                     .onChange(of: addMethod, perform: addMethodChanged)
@@ -357,6 +360,7 @@ struct ContentView: View {
                         NavigationLink("Object Info", destination: ObjectSettings(height: $boxHeight, width: $boxWidth, r: $r, g: $g, b: $b))
                         Spacer()
                     }
+                    
                 }
             }
         }
