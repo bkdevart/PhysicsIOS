@@ -23,6 +23,8 @@
  
  Bugs
  - Drag method that checks for background layer makes drag very jittery, sometimes objects drop and return to mouse
+ - Pour method does not work when there is a background node where touch starts
+ - Ratio of shape drawing is not dynamic to screen size
  
  Game ideas
  - Wrecking ball
@@ -49,11 +51,14 @@ enum AddMethod: String, CaseIterable, Identifiable {
 
 struct ContentView: View {
     // default box/color values - these are initialized in UIJoin (may not need values?)
+    // TODO: these values are synced with default values in UIJoin - make one?
+    // value may be needed at start (based on how initialization is handled)
+    // Cannot use instance member 'controls' within property initializer; property initializers run before 'self' is available
     @State private var boxHeight = 5.0
     @State private var boxWidth = 5.0
-    @State private var r = 0.34
-    @State private var g = 0.74
-    @State private var b = 0.7
+    @State private var r =  0.75  // 0.34
+    @State private var g = 0.66  // 0.74
+    @State private var b = 0.92  // 0.7
     
     
     // using this to track box size and color selection as it changes
@@ -160,7 +165,7 @@ struct ContentView: View {
                         Text("Paint").tag(AddMethod.paint)
                     }
                     .onChange(of: addMethod, perform: addMethodChanged)
-                    Toggle("Remove", isOn: $removeOn)
+                    Toggle("Remove Tapped Shape", isOn: $removeOn)
                         .onChange(of: removeOn) { newValue in
                             controls.removeOn = removeOn
                         }

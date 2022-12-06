@@ -14,12 +14,6 @@ class GameScene: SKScene {
     
     
     @ObservedObject var controls = UIJoin.shared
-    // TODO: do I need to have the controls object updated with this scene's self?
-//    controls.gameScene = self
-    
-    public func clearAll() {
-        removeAllChildren()
-    }
     
     // when the scene is presented by the view, didMove activates and triggers the physics engine environment
     override func didMove(to view: SKView) {
@@ -86,7 +80,9 @@ class GameScene: SKScene {
             // will crash here if no nodes are touched
             if touchedNodes.count > 0 {
                 // check if selectedNode is paint node
-                if controls.selectedNode.zPosition != -5 {
+                // TODO: this may be creating a lag effect
+//                if controls.selectedNode.zPosition != -5 {
+                if touchedNodes[0].zPosition != -5 {
                     // log node so that drag motion works
                     controls.selectedNode = touchedNodes[0]
                     // TODO: if removeOn is set, clear node (doesn't work yet)

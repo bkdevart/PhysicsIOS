@@ -10,9 +10,9 @@ import SpriteKit
 
 // using this to track box size and color selection across views
 class UIJoin: ObservableObject {
-    @Published var r = 0.34
-    @Published var g = 0.74
-    @Published var b = 0.7
+    @Published var r = 0.75  // 0.34
+    @Published var g = 0.66  // 0.74
+    @Published var b = 0.92  // 0.7
     @Published var selectedShape: Shape = .rectangle
     @Published var screenWidth = 428
     @Published var screenHeight = 478  // TODO: set to same as height to preserve square?
