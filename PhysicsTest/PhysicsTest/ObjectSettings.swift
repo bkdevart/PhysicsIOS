@@ -10,12 +10,12 @@ import SpriteKit
 
 // using this to track box size and color selection across views
 class UIJoin: ObservableObject {
-    @Published var r = 0.75  // 0.34
-    @Published var g = 0.66  // 0.74
-    @Published var b = 0.92  // 0.7
+    @Published var r = 0.62  // 0.34
+    @Published var g = 0.53  // 0.74
+    @Published var b = 1.0  // 0.7
     @Published var selectedShape: Shape = .rectangle
-    @Published var screenWidth = 428
-    @Published var screenHeight = 478  // TODO: set to same as height to preserve square?
+    @Published var screenWidth: CGFloat = 428.0
+    @Published var screenHeight: CGFloat = 313.97// 313.97  // set to same as width to preserve square?
     @Published var boxHeight = 5.0
     @Published var boxWidth = 5.0
     @Published var addMethod: AddMethod = .add
@@ -112,13 +112,18 @@ struct ObjectSettings: View {
     @Binding var r: Double
     @Binding var g: Double
     @Binding var b: Double
-
+    
+    
+    @ObservedObject var controls = UIJoin.shared
+    
     var body: some View {
         Text("Current object values:")
-        Text("Height: \(height)")
-        Text("Width: \(width)")
-        Text("R: \(r)")
-        Text("G: \(g)")
-        Text("B: \(b)")
+        Text("Object Height: \(height)")
+        Text("Object Width: \(width)")
+        Text("Red: \(r)")
+        Text("Green: \(g)")
+        Text("Blue: \(b)")
+        Text("Screen Height: \(controls.screenHeight)")
+        Text("Screen Height: \(controls.screenWidth)")
     }
 }

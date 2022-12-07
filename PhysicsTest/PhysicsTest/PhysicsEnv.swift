@@ -80,12 +80,10 @@ class GameScene: SKScene {
             // will crash here if no nodes are touched
             if touchedNodes.count > 0 {
                 // check if selectedNode is paint node
-                // TODO: this may be creating a lag effect
-//                if controls.selectedNode.zPosition != -5 {
                 if touchedNodes[0].zPosition != -5 {
                     // log node so that drag motion works
                     controls.selectedNode = touchedNodes[0]
-                    // TODO: if removeOn is set, clear node (doesn't work yet)
+                    // if removeOn is set, clear node
                     if controls.removeOn {
                         controls.selectedNode.removeFromParent()
                     }
@@ -101,8 +99,20 @@ class GameScene: SKScene {
                 addChild(newNode)
             }
         case .paint:
-            let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5)
-            addChild(newNode)
+            // remove paint
+            let touchedNodes = nodes(at: location)
+            
+            if touchedNodes.count > 0 {
+                let selectedNode = touchedNodes[0]
+                controls.selectedNodes = touchedNodes
+                if (Int(selectedNode.zPosition) == -5 && controls.addMethod == .paint && controls.removeOn) {
+                    controls.selectedNode = selectedNode
+                    controls.selectedNode.removeFromParent()
+                }
+            } else {  // add paint node
+                let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5)
+                addChild(newNode)
+            }
         }
         // this is needed to keep track of all children objects (shape nodes)
         controls.gameScene = self

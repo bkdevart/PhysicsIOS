@@ -56,9 +56,10 @@ struct ContentView: View {
     // Cannot use instance member 'controls' within property initializer; property initializers run before 'self' is available
     @State private var boxHeight = 5.0
     @State private var boxWidth = 5.0
-    @State private var r =  0.75  // 0.34
-    @State private var g = 0.66  // 0.74
-    @State private var b = 0.92  // 0.7
+    @State private var r =  0.62  // 0.34
+    @State private var g = 0.53  // 0.74
+    @State private var b = 1.0  // 0.7
+    @State private var sceneHeight = 500
     
     
     // using this to track box size and color selection as it changes
@@ -76,14 +77,14 @@ struct ContentView: View {
 
     
     var scene: SKScene {
+        // making this square helps with ratio issues when drawing shapes
         let scene = GameScene()
-        // TODO: make sure dynamic sizing is working properly
+        // TODO: make sure dynamic sizing is working properly - not sure if this is used
         let maxHeight = controls.screenHeight  // 2532
         let maxWidth = controls.screenWidth  // 1170
+//        let maxWidth = controls.screenHeight
         scene.size = CGSize(width: maxWidth, height: maxHeight)
         scene.scaleMode = .fill
-        // store in observable object
-        controls.gameScene = scene
         return scene
     }
 
@@ -151,13 +152,16 @@ struct ContentView: View {
                     }
                     // TODO: figure out how to get a reference to this object
                     GeometryReader { geometry in
+                        // these values appear right, but how to get them out?
                         let width = geometry.size.width
-    //                    let height = geometry.size.height
+                        let height = geometry.size.height
                         
-                        // note: making the scene square allows for rendering using square ratios
+                        // making the scene square allows for rendering using square ratios, but this doesn't appear to be changing anything
+                        // TODO: see if using maxWidth/maxHeight is optimal
                         SpriteView(scene: scene)
-                            .frame(maxWidth: width, maxHeight: width)  // makes things square
+                            .frame(maxWidth: width, maxHeight: height)
                             .ignoresSafeArea()
+                            .onAppear{ self.storeGeometry(for: geometry) }
                     }
                     // choose how to add/remove shapes to the physics environment
                     Picker("AddMethod", selection: $addMethod) {
@@ -191,6 +195,10 @@ struct ContentView: View {
         }
     }
     
+    private func storeGeometry(for geometry: GeometryProxy) {
+        controls.screenWidth = geometry.size.width
+        controls.screenHeight = geometry.size.height
+    }
     
     private func sliderColorRChanged(to newValue: Double) {
         controls.r = newValue
