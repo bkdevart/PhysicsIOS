@@ -15,7 +15,7 @@ class UIJoin: ObservableObject {
     @Published var b = 1.0  // 0.7
     @Published var selectedShape: Shape = .rectangle
     @Published var screenWidth: CGFloat = 428.0
-    @Published var screenHeight: CGFloat = 313.97// 313.97  // set to same as width to preserve square?
+    @Published var screenHeight: CGFloat = 428.0 // 313.97// 313.97  // set to same as width to preserve square?
     @Published var boxHeight = 5.0
     @Published var boxWidth = 5.0
     @Published var addMethod: AddMethod = .add
@@ -24,6 +24,9 @@ class UIJoin: ObservableObject {
     @Published var removeOn = false
     @Published var paintLayer = 0
     @Published var pourOn = false
+    @Published var density: CGFloat = 1.0
+    @Published var mass: CGFloat = 1.0  // don't actually know default value to set
+    @Published var staticNode = false
     
     // capture state of entire scene
     @Published var gameScene = SKScene()
@@ -34,7 +37,7 @@ class UIJoin: ObservableObject {
     static var shared = UIJoin()
 }
 
-
+// TODO: add density and mass(?) to this
 func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) -> SKNode {
 //        let location = touch.location(in: self)
     @ObservedObject var controls = UIJoin.shared
@@ -63,6 +66,12 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) -> 
         box.zPosition = CGFloat(zPosition)
         if hasPhysics {
             box.physicsBody = SKPhysicsBody(polygonFrom: path)
+            // default density value is 1.0, anything higher is relative to this
+            box.physicsBody?.density = controls.density
+            // TODO: figure out how to add in mass control while factoring in density
+            
+            // modify static/dynamic property based on toggle
+            box.physicsBody?.isDynamic = !controls.staticNode
         }
         return box
 
@@ -80,6 +89,8 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) -> 
         ball.zPosition = CGFloat(zPosition)
         if hasPhysics {
             ball.physicsBody = SKPhysicsBody(polygonFrom: path)
+            ball.physicsBody?.density = controls.density
+            ball.physicsBody?.isDynamic = !controls.staticNode
         }
         return ball
 
@@ -99,6 +110,8 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) -> 
         triangle.zPosition = CGFloat(zPosition)
         if hasPhysics {
             triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
+            triangle.physicsBody?.density = controls.density
+            triangle.physicsBody?.isDynamic = !controls.staticNode
         }
         return triangle
     }

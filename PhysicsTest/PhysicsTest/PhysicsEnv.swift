@@ -33,7 +33,10 @@ class GameScene: SKScene {
                 if controls.selectedNodes.count > 0 {
                     // check if it is a paint node
                     if controls.selectedNode.zPosition != -5 {
+                        // move with finger/mouse
                         controls.selectedNode.position = location
+                        print("Density: \(controls.density)")
+                        print("Mass: \(controls.mass)")
                     } else {
                         let newNode = renderNode(location: location, hasPhysics: true)
                         addChild(newNode)

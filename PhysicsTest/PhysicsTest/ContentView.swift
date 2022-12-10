@@ -22,9 +22,13 @@
         - add paint mode switch
  
  Bugs
+ - Adding a node can happen sometimes when dragging one (it appears watching others)
  - Drag method that checks for background layer makes drag very jittery, sometimes objects drop and return to mouse
  - Pour method does not work when there is a background node where touch starts
  - Ratio of shape drawing is not dynamic to screen size
+ 
+ Feature ideas
+ - Add static toggle to place static objects in scene
  
  Game ideas
  - Wrecking ball
@@ -60,6 +64,8 @@ struct ContentView: View {
     @State private var g = 0.53  // 0.74
     @State private var b = 1.0  // 0.7
     @State private var sceneHeight = 500
+    @State private var density = 1.0  // 1.0
+    @State private var staticNode = false
     
     
     // using this to track box size and color selection as it changes
@@ -83,7 +89,8 @@ struct ContentView: View {
         let maxHeight = controls.screenHeight  // 2532
         let maxWidth = controls.screenWidth  // 1170
 //        let maxWidth = controls.screenHeight
-        scene.size = CGSize(width: maxWidth, height: maxHeight)
+//        scene.size = CGSize(width: maxWidth, height: maxHeight)
+        scene.size = CGSize(width: maxWidth, height: maxWidth)
         scene.scaleMode = .fill
         return scene
     }
@@ -169,16 +176,32 @@ struct ContentView: View {
                         Text("Paint").tag(AddMethod.paint)
                     }
                     .onChange(of: addMethod, perform: addMethodChanged)
-                    Toggle("Remove Tapped Shape", isOn: $removeOn)
-                        .onChange(of: removeOn) { newValue in
-                            controls.removeOn = removeOn
+                    HStack {
+                        Text("Density")
+                        Slider(value: $density, in: 0...10, step: 1.0)
+                            .padding([.horizontal])
+                            .onChange(of: Float(density), perform: sliderDensityChanged)
+                    }
+                    .padding()
+                    HStack {
+                        VStack {
+                            Toggle("Drop", isOn: $removeOn)
+                                .onChange(of: removeOn) { newValue in
+                                    controls.removeOn = removeOn
+                                }
+                                .padding()
                         }
-                        .padding()
-                    Toggle("Pour", isOn: $pourOn)
-                        .onChange(of: pourOn) { newValue in
-                            controls.pourOn = pourOn
-                        }
-                        .padding()
+                        Toggle("Static", isOn: $staticNode)
+                            .onChange(of: staticNode) { newValue in
+                                controls.staticNode = staticNode
+                            }
+                            .padding()
+                        Toggle("Pour", isOn: $pourOn)
+                            .onChange(of: pourOn) { newValue in
+                                controls.pourOn = pourOn
+                            }
+                            .padding()
+                    }
                     HStack {
                         // shows different information here (user color settings, size settings)
                         Spacer()
@@ -230,6 +253,10 @@ struct ContentView: View {
     
     private func removeAll() {
         controls.gameScene.removeAllChildren()
+    }
+    
+    private func sliderDensityChanged(to newValue: Float) {
+        controls.density = CGFloat(newValue)
     }
 }
 
