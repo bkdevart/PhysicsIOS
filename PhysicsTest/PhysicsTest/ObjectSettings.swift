@@ -15,9 +15,9 @@ class UIJoin: ObservableObject {
     @Published var b = 1.0  // 0.7
     @Published var selectedShape: Shape = .rectangle
     @Published var screenWidth: CGFloat = 428.0
-    @Published var screenHeight: CGFloat = 428.0 // 313.97// 313.97  // set to same as width to preserve square?
-    @Published var boxHeight = 5.0
-    @Published var boxWidth = 5.0
+    @Published var screenHeight: CGFloat = 428.0
+    @Published var boxHeight = 6.0
+    @Published var boxWidth = 6.0
     @Published var addMethod: AddMethod = .add
     @Published var selectedNode = SKNode()
     @Published var selectedNodes = [SKNode]()
@@ -27,8 +27,10 @@ class UIJoin: ObservableObject {
     @Published var density: CGFloat = 1.0
     @Published var mass: CGFloat = 1.0  // don't actually know default value to set
     @Published var staticNode = false
+    @Published var linearDamping = 0.1
+    @Published var scalePixels = 1.0  // generic default value
     
-    // capture state of entire scene
+    // TODO: capture state of entire scene - not codable, deconstruct
     @Published var gameScene = SKScene()
     
     // TODO: capture SwiftUI views in variable here (if possible)
@@ -43,8 +45,8 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) -> 
     @ObservedObject var controls = UIJoin.shared
     
     // user can choose height and width
-    let boxWidth = Int((controls.boxWidth / 100.0) * Double(controls.screenWidth))
-    let boxHeight = Int((controls.boxHeight / 100.0) * Double(controls.screenHeight))
+    let boxWidth = Int((controls.boxWidth / 100.0) * Double(controls.scalePixels))
+    let boxHeight = Int((controls.boxHeight / 100.0) * Double(controls.scalePixels))
     // each color betwen 0 and 1 (based on slider)
     let chosenColor: Color = Color(red: controls.r,
                                    green: controls.g,
@@ -72,6 +74,7 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) -> 
             
             // modify static/dynamic property based on toggle
             box.physicsBody?.isDynamic = !controls.staticNode
+            box.physicsBody?.linearDamping = controls.linearDamping
         }
         return box
 
@@ -91,6 +94,7 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) -> 
             ball.physicsBody = SKPhysicsBody(polygonFrom: path)
             ball.physicsBody?.density = controls.density
             ball.physicsBody?.isDynamic = !controls.staticNode
+            ball.physicsBody?.linearDamping = controls.linearDamping
         }
         return ball
 
@@ -112,6 +116,7 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) -> 
             triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
             triangle.physicsBody?.density = controls.density
             triangle.physicsBody?.isDynamic = !controls.staticNode
+            triangle.physicsBody?.linearDamping = controls.linearDamping
         }
         return triangle
     }
@@ -137,6 +142,6 @@ struct ObjectSettings: View {
         Text("Green: \(g)")
         Text("Blue: \(b)")
         Text("Screen Height: \(controls.screenHeight)")
-        Text("Screen Height: \(controls.screenWidth)")
+        Text("Screen Width: \(controls.screenWidth)")
     }
 }

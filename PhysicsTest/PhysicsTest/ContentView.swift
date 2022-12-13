@@ -25,17 +25,24 @@
  - Adding a node can happen sometimes when dragging one (it appears watching others)
  - Drag method that checks for background layer makes drag very jittery, sometimes objects drop and return to mouse
  - Pour method does not work when there is a background node where touch starts
- - Ratio of shape drawing is not dynamic to screen size
+ - Rectangle height not working when clear & static, physics not applying at one point
+ - Clear all can get stuck, when tapping screen after, clear catches up
  
  Feature ideas
- - Add static toggle to place static objects in scene
+ - Zoom in/out on a larger, boundry-defined scene
+ - Adjust gravity based on tilt of phone
+ - Persistance - save state whenever phone is turned
+    - Allow user to set number of saves (just rolls and deletes old as new added)
+    - Allow user to favorite saves so that they are never deleted
+ - Add velocity direction to play with damping (applyForce & applyImpulse)
+ - make new view, use pop up menu to put all controls in to free up screen
  
  Game ideas
  - Wrecking ball
  - Obstacle navigation
  - Boom blox
+ - Gravity (simulate planets)
  */
-//
 
 import SwiftUI
 import CoreData
@@ -58,14 +65,15 @@ struct ContentView: View {
     // TODO: these values are synced with default values in UIJoin - make one?
     // value may be needed at start (based on how initialization is handled)
     // Cannot use instance member 'controls' within property initializer; property initializers run before 'self' is available
-    @State private var boxHeight = 5.0
-    @State private var boxWidth = 5.0
+    @State private var boxHeight = 6.0
+    @State private var boxWidth = 6.0
     @State private var r =  0.62  // 0.34
     @State private var g = 0.53  // 0.74
     @State private var b = 1.0  // 0.7
     @State private var sceneHeight = 500
     @State private var density = 1.0  // 1.0
     @State private var staticNode = false
+    @State private var linearDamping = 0.1
     
     
     // using this to track box size and color selection as it changes
@@ -82,18 +90,41 @@ struct ContentView: View {
     @State public var pourOn = false
 
     
+    // TODO:  override the scene’s didChangeSize(_:) method, which is called whenever the scene changes size. When this method is called, you should update the scene’s contents to match the new size.
+//    override func didChangeSize(_:) {
+//
+//    }
+    
     var scene: SKScene {
         // making this square helps with ratio issues when drawing shapes
         let scene = GameScene()
         // TODO: make sure dynamic sizing is working properly - not sure if this is used
         let maxHeight = controls.screenHeight  // 2532
         let maxWidth = controls.screenWidth  // 1170
-//        let maxWidth = controls.screenHeight
-//        scene.size = CGSize(width: maxWidth, height: maxHeight)
-        scene.size = CGSize(width: maxWidth, height: maxWidth)
-        scene.scaleMode = .fill
+        // TODO: create variable with smaller of two screen values to use for resizing
+        var scalePixels = 1.0  // generic default value
+        if maxHeight > maxWidth {
+            scalePixels = maxWidth
+        } else {
+            scalePixels = maxHeight
+        }
+        controls.scalePixels = scalePixels
+        scene.size = CGSize(width: scalePixels, height: scalePixels)
+        scene.scaleMode = .aspectFit  // .aspectFill // .resizeFill  // .aspectFit
+        scene.view?.showsDrawCount = true
+        
+        // TODO: add camera node
+        let cameraNode = SKCameraNode()
+            
+        cameraNode.position = CGPoint(x: scene.size.width / 2,
+                                      y: scene.size.height / 2)
+            
+        scene.addChild(cameraNode)
+        scene.camera = cameraNode
+        
         return scene
     }
+    
 
     var body: some View {
 
@@ -157,18 +188,17 @@ struct ContentView: View {
                         }
                         .padding()
                     }
-                    // TODO: figure out how to get a reference to this object
-                    GeometryReader { geometry in
-                        // these values appear right, but how to get them out?
-                        let width = geometry.size.width
-                        let height = geometry.size.height
-                        
-                        // making the scene square allows for rendering using square ratios, but this doesn't appear to be changing anything
-                        // TODO: see if using maxWidth/maxHeight is optimal
-                        SpriteView(scene: scene)
-                            .frame(maxWidth: width, maxHeight: height)
-                            .ignoresSafeArea()
-                            .onAppear{ self.storeGeometry(for: geometry) }
+                    HStack {
+                        GeometryReader { geometry in
+                            let width = geometry.size.width
+                            let height = geometry.size.height
+                            
+                            // this view contains the physics (will letter box if smaller than view area reserved for physics)
+                            SpriteView(scene: scene)
+                                .frame(width: width)
+                                .ignoresSafeArea()
+                                .onAppear{ self.storeGeometry(for: geometry) }
+                        }
                     }
                     // choose how to add/remove shapes to the physics environment
                     Picker("AddMethod", selection: $addMethod) {
@@ -177,15 +207,24 @@ struct ContentView: View {
                     }
                     .onChange(of: addMethod, perform: addMethodChanged)
                     HStack {
-                        Text("Density")
-                        Slider(value: $density, in: 0...10, step: 1.0)
-                            .padding([.horizontal])
-                            .onChange(of: Float(density), perform: sliderDensityChanged)
+                        HStack {
+                            Text("Density")
+                            Slider(value: $density, in: 0...10, step: 1.0)
+                                .padding([.horizontal])
+                                .onChange(of: Float(density), perform: sliderDensityChanged)
+                        }
+                        .padding()
+                        HStack {
+                            Text("L Damp")
+                            Slider(value: $linearDamping, in: 0...1, step: 0.1)
+                                .padding([.horizontal])
+                                .onChange(of: Float(linearDamping), perform: sliderLinearDampingChanged)
+                        }
+                        .padding()
                     }
-                    .padding()
                     HStack {
                         VStack {
-                            Toggle("Drop", isOn: $removeOn)
+                            Toggle("Clear", isOn: $removeOn)
                                 .onChange(of: removeOn) { newValue in
                                     controls.removeOn = removeOn
                                 }
@@ -206,7 +245,7 @@ struct ContentView: View {
                         // shows different information here (user color settings, size settings)
                         Spacer()
                         Button(action: removeAll) {
-                            Text("Remove All")
+                            Text("Clear All")
                         }
                         Spacer()
                         NavigationLink("Object Info", destination: ObjectSettings(height: $boxHeight, width: $boxWidth, r: $r, g: $g, b: $b))
@@ -257,6 +296,10 @@ struct ContentView: View {
     
     private func sliderDensityChanged(to newValue: Float) {
         controls.density = CGFloat(newValue)
+    }
+    
+    private func sliderLinearDampingChanged(to newValue: Float) {
+        controls.linearDamping = CGFloat(newValue)
     }
 }
 

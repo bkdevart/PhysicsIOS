@@ -7,13 +7,18 @@
 
 import SwiftUI
 import SpriteKit
-
-
+import Foundation
 
 class GameScene: SKScene {
-    
-    
     @ObservedObject var controls = UIJoin.shared
+    
+    // TODO: create object to store physics environment state
+//    struct physicEnvStruct: Codable, Identifiable {
+//        var id: ObjectIdentifier
+//
+//        // TODO: research how to make conform to encodable/decodable
+//        var physicScene: SpriteView
+//    }
     
     // when the scene is presented by the view, didMove activates and triggers the physics engine environment
     override func didMove(to view: SKView) {
@@ -35,8 +40,6 @@ class GameScene: SKScene {
                     if controls.selectedNode.zPosition != -5 {
                         // move with finger/mouse
                         controls.selectedNode.position = location
-                        print("Density: \(controls.density)")
-                        print("Mass: \(controls.mass)")
                     } else {
                         let newNode = renderNode(location: location, hasPhysics: true)
                         addChild(newNode)
