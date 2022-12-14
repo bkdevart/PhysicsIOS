@@ -113,15 +113,16 @@ struct ContentView: View {
         scene.scaleMode = .aspectFit  // .aspectFill // .resizeFill  // .aspectFit
         scene.view?.showsDrawCount = true
         
-        // TODO: add camera node
+        // add camera node
         let cameraNode = SKCameraNode()
-            
         cameraNode.position = CGPoint(x: scene.size.width / 2,
                                       y: scene.size.height / 2)
-            
         scene.addChild(cameraNode)
         scene.camera = cameraNode
         
+        // update shared references
+        controls.gameScene = scene
+        controls.camera = cameraNode
         return scene
     }
     
@@ -194,9 +195,10 @@ struct ContentView: View {
                             let height = geometry.size.height
                             
                             // this view contains the physics (will letter box if smaller than view area reserved for physics)
+                            // note: width is limited whether it is full frame or not
                             SpriteView(scene: scene)
                                 .frame(width: width)
-                                .ignoresSafeArea()
+//                                .ignoresSafeArea()
                                 .onAppear{ self.storeGeometry(for: geometry) }
                         }
                     }

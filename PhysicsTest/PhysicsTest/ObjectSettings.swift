@@ -32,6 +32,7 @@ class UIJoin: ObservableObject {
     
     // TODO: capture state of entire scene - not codable, deconstruct
     @Published var gameScene = SKScene()
+    @Published var camera = SKCameraNode()
     
     // TODO: capture SwiftUI views in variable here (if possible)
 //    @Published var swiftUIViews = ContentView()
