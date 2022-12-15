@@ -34,19 +34,21 @@ class GameScene: SKScene {
         let location = touch.location(in: self)
 
         switch controls.addMethod {
+        // TODO: clear doesn't exist in dropdown currently
         case .clear:
             // select node and delete only that one
             let touchedNodes = nodes(at: location)
-            controls.selectedNodes = touchedNodes
-            // will crash here if no nodes are touched
-            if touchedNodes.count > 0 {
-                controls.selectedNode = touchedNodes[0]
-            } else {
-                // this removes the last node that was touched from being saved
-                controls.selectedNode = SKNode()
-            }
-            controls.selectedNode.removeFromParent()
+//            controls.selectedNodes = touchedNodes
+//            // will crash here if no nodes are touched
+//            if touchedNodes.count > 0 {
+//                controls.selectedNode = touchedNodes[0]
+//            } else {
+//                // this removes the last node that was touched from being saved
+//                controls.selectedNode = SKNode()
+//            }
+//            controls.selectedNode.removeFromParent()
         case .add:
+            // TODO: none of these conditions are satisfied correctly when dragging and dropping, resulting in object being dragged and another being dropped as well
             let touchedNodes = nodes(at: location)
             controls.selectedNodes = touchedNodes
             // will crash here if no nodes are touched
@@ -55,6 +57,8 @@ class GameScene: SKScene {
                 if touchedNodes[0].zPosition != -5 {
                     // log node so that drag motion works
                     controls.selectedNode = touchedNodes[0]
+                    // TODO: turn drop switch off
+                    controls.drop = false
                     // if removeOn is set, clear node
                     if controls.removeOn {
                         controls.selectedNode.removeFromParent()
@@ -62,14 +66,22 @@ class GameScene: SKScene {
                 } else {
                     // drop new one if paint node selected (can't move paint nodes)
                     print("You are selecting a paint node and need to drop instead")
-                    let newNode = renderNode(location: location, hasPhysics: true)
-                    addChild(newNode)
+                    if controls.drop && !controls.removeOn {
+                        let newNode = renderNode(location: location, hasPhysics: true)
+                        addChild(newNode)
+//                        controls.drop = true
+                    }
                 }
             } else {
                 // if no non-paint nodes are touched, then add new one
-                let newNode = renderNode(location: location, hasPhysics: true)
-                addChild(newNode)
+                if controls.drop && !controls.removeOn {
+                    let newNode = renderNode(location: location, hasPhysics: true)
+                    addChild(newNode)
+//                    controls.drop = true
+                }
+                controls.drop = true
             }
+            
         case .paint:
             // remove paint
             let touchedNodes = nodes(at: location)
@@ -96,8 +108,6 @@ class GameScene: SKScene {
         case .clear:
             print("Will think about this clear method dragging finger")
         case .add:
-            // TODO: check to see if there is only one touch for one finger, etc
-            print(touches.count)
             for touch in touches {
                 let location = touch.location(in: self)
                 // do drag code
@@ -106,6 +116,7 @@ class GameScene: SKScene {
                     if controls.selectedNode.zPosition != -5 {
                         // move with finger/mouse
                         controls.selectedNode.position = location
+                        controls.drop = false
                     } else {
                         // do you need to drop on drag like this?
 //                        let newNode = renderNode(location: location, hasPhysics: true)
@@ -173,30 +184,30 @@ class GameScene: SKScene {
             }
             controls.selectedNode.removeFromParent()
         case .add:
-            print("Add chosen")
+            // TODO: see what you neeed to keep from this code after implementing drop
             let touchedNodes = nodes(at: location)
             controls.selectedNodes = touchedNodes
             // will crash here if no nodes are touched
-//            if touchedNodes.count > 0 {
-//                // check if selectedNode is paint node
-//                if touchedNodes[0].zPosition != -5 {
-//                    // log node so that drag motion works
-//                    controls.selectedNode = touchedNodes[0]
-//                    // if removeOn is set, clear node
-//                    if controls.removeOn {
-//                        controls.selectedNode.removeFromParent()
-//                    }
-//                } else {
+            if touchedNodes.count > 0 {
+                // check if selectedNode is paint node
+                if touchedNodes[0].zPosition != -5 {
+                    // log node so that drag motion works
+                    controls.selectedNode = touchedNodes[0]
+                    // if removeOn is set, clear node
+                    if controls.removeOn {
+                        controls.selectedNode.removeFromParent()
+                    }
+            } else {
 //                    // drop new one if paint node selected (can't move paint nodes)
 //                    print("You are selecting a paint node and need to drop instead")
 //                    let newNode = renderNode(location: location, hasPhysics: true)
 //                    addChild(newNode)
-//                }
+            }
 //            } else {
 //                // if no non-paint nodes are touched, then add new one
 //                let newNode = renderNode(location: location, hasPhysics: true)
 //                addChild(newNode)
-//            }
+            }
         case .paint:
             // remove paint
             let touchedNodes = nodes(at: location)

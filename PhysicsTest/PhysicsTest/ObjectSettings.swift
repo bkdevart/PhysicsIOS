@@ -29,6 +29,7 @@ class UIJoin: ObservableObject {
     @Published var staticNode = false
     @Published var linearDamping = 0.1
     @Published var scalePixels = 1.0  // generic default value
+    @Published var drop = true
     
     // TODO: capture state of entire scene - not codable, deconstruct
     @Published var gameScene = SKScene()
