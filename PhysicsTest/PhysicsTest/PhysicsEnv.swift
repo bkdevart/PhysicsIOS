@@ -120,22 +120,25 @@ class GameScene: SKScene {
                     
                     // TODO: create camera code
                     // store current camera position before moving on
-                    let originalCam = controls.camera.position  //camera.position
-                    let center = view!.center
-                    controls.camera.position = center
-                    let xDist = location.x - center.x
-                    let yDist = location.y - center.y
-                    let distance = sqrt((xDist * xDist) + (yDist * yDist)) * 0.02
-                    let xPos = xDist * distance * 0.08
-                    let yPos = yDist * distance * 0.08
-                    // TODO: disabling until stable
-                    camera?.position.x = -xPos  // was +=
-                    camera?.position.y = -yPos  // was -=
+//                    let originalCam = controls.camera.position  //camera.position
+//                    let center = view!.center
+//                    controls.camera.position = center
+//                    let xDist = location.x - center.x
+//                    let yDist = location.y - center.y
+//                    let distance = sqrt((xDist * xDist) + (yDist * yDist)) * 0.02
+//                    let xPos = xDist * distance * 0.08
+//                    let yPos = yDist * distance * 0.08
+//                    camera?.position.x = -xPos  // was +=
+//                    camera?.position.y = -yPos  // was -=
+//                    // force unwrap here assumes the camera was created in view
+//                    print("\(camera?.position.x), \(camera?.position.y)")
+//                    controls.camera = camera!
+                    
+                    let location = touch.location(in: self)
+                    let previousLocation = touch.previousLocation(in: self)
 
-                    // force unwrap here assumes the camera was created in view
-                    print("\(camera?.position.x), \(camera?.position.y)")
-                    controls.camera = camera!
-                    controls.gameScene.camera?.position = (location)
+                    camera?.position.x += location.x - previousLocation.x
+                    camera?.position.y += location.y - previousLocation.y
                 }
             }
         case .paint:
@@ -174,26 +177,26 @@ class GameScene: SKScene {
             let touchedNodes = nodes(at: location)
             controls.selectedNodes = touchedNodes
             // will crash here if no nodes are touched
-            if touchedNodes.count > 0 {
-                // check if selectedNode is paint node
-                if touchedNodes[0].zPosition != -5 {
-                    // log node so that drag motion works
-                    controls.selectedNode = touchedNodes[0]
-                    // if removeOn is set, clear node
-                    if controls.removeOn {
-                        controls.selectedNode.removeFromParent()
-                    }
-                } else {
-                    // drop new one if paint node selected (can't move paint nodes)
-                    print("You are selecting a paint node and need to drop instead")
-                    let newNode = renderNode(location: location, hasPhysics: true)
-                    addChild(newNode)
-                }
-            } else {
-                // if no non-paint nodes are touched, then add new one
-                let newNode = renderNode(location: location, hasPhysics: true)
-                addChild(newNode)
-            }
+//            if touchedNodes.count > 0 {
+//                // check if selectedNode is paint node
+//                if touchedNodes[0].zPosition != -5 {
+//                    // log node so that drag motion works
+//                    controls.selectedNode = touchedNodes[0]
+//                    // if removeOn is set, clear node
+//                    if controls.removeOn {
+//                        controls.selectedNode.removeFromParent()
+//                    }
+//                } else {
+//                    // drop new one if paint node selected (can't move paint nodes)
+//                    print("You are selecting a paint node and need to drop instead")
+//                    let newNode = renderNode(location: location, hasPhysics: true)
+//                    addChild(newNode)
+//                }
+//            } else {
+//                // if no non-paint nodes are touched, then add new one
+//                let newNode = renderNode(location: location, hasPhysics: true)
+//                addChild(newNode)
+//            }
         case .paint:
             // remove paint
             let touchedNodes = nodes(at: location)
