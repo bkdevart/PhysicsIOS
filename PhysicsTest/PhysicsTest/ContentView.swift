@@ -27,6 +27,7 @@
  - Pour method does not work when there is a background node where touch starts
  - Rectangle height not working when clear & static, physics not applying at one point
  - Clear all can get stuck, when tapping screen after, clear catches up
+ - Clear all removes camera node
  
  Feature ideas
  - Zoom in/out on a larger, boundry-defined scene
@@ -78,10 +79,6 @@ struct ContentView: View {
     
     // using this to track box size and color selection as it changes
     let controls = UIJoin.shared
-    
-    /*
-     May have to read https://github.com/joshuajhomann/SwiftUI-Spirograph to get combine to work with geometry reader to get proper scene.size set (hardcoded to iPhone 13 pro right now)
-     */
 
     // houses shape picker selection
     @State private var selectedShape: Shape = .rectangle
@@ -124,6 +121,82 @@ struct ContentView: View {
         controls.gameScene = scene
         controls.camera = cameraNode
         return scene
+    }
+    
+    // TODO: play with layout to optimize for screen space in the middle
+    struct PourToggleStyle: ToggleStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            HStack {
+                Button(action: {
+                    configuration.isOn.toggle()
+                }, label: {
+                    Image(systemName: configuration.isOn ?
+                            "drop.fill" : "drop")
+                        .renderingMode(.template)
+                        .foregroundColor(configuration.isOn ? .red : .black)
+                        .font(.system(size: 50))
+                })
+                .buttonStyle(PlainButtonStyle())
+     
+//                Spacer().frame(height: 20)
+     
+                Text(configuration.isOn ?
+                        "on" :
+                        "off")
+//                    .italic()
+                    .foregroundColor(.gray)
+            }
+        }
+    }
+    
+    struct StaticToggleStyle: ToggleStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            HStack {
+                Button(action: {
+                    configuration.isOn.toggle()
+                }, label: {
+                    Image(systemName: configuration.isOn ?
+                          "hand.raised.brakesignal": "brakesignal")
+                        .renderingMode(.template)
+                        .foregroundColor(configuration.isOn ? .red : .black)
+                        .font(.system(size: 50))
+                })
+                .buttonStyle(PlainButtonStyle())
+     
+//                Spacer().frame(height: 20)
+     
+                Text(configuration.isOn ?
+                        "on" :
+                        "off")
+//                    .italic()
+                    .foregroundColor(.gray)
+            }
+        }
+    }
+    
+    struct ClearToggleStyle: ToggleStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            HStack {
+                Button(action: {
+                    configuration.isOn.toggle()
+                }, label: {
+                    Image(systemName: configuration.isOn ?
+                          "eraser.fill": "eraser")
+                        .renderingMode(.template)
+                        .foregroundColor(configuration.isOn ? .red : .black)
+                        .font(.system(size: 50))
+                })
+                .buttonStyle(PlainButtonStyle())
+     
+//                Spacer().frame(height: 20)
+     
+                Text(configuration.isOn ?
+                        "on" :
+                        "off")
+//                    .italic()
+                    .foregroundColor(.gray)
+            }
+        }
     }
     
 
@@ -192,7 +265,7 @@ struct ContentView: View {
                     HStack {
                         GeometryReader { geometry in
                             let width = geometry.size.width
-                            let height = geometry.size.height
+//                            let height = geometry.size.height
                             
                             // this view contains the physics (will letter box if smaller than view area reserved for physics)
                             // note: width is limited whether it is full frame or not
@@ -225,24 +298,26 @@ struct ContentView: View {
                         .padding()
                     }
                     HStack {
-                        VStack {
-                            Toggle("Clear", isOn: $removeOn)
-                                .onChange(of: removeOn) { newValue in
-                                    controls.removeOn = removeOn
-                                }
-                                .padding()
-                        }
+                        Toggle("Clear", isOn: $removeOn)
+                            .onChange(of: removeOn) { newValue in
+                                controls.removeOn = removeOn
+                            }
+                            .toggleStyle(ClearToggleStyle())
+                            .padding()
                         Toggle("Static", isOn: $staticNode)
                             .onChange(of: staticNode) { newValue in
                                 controls.staticNode = staticNode
                             }
+                            .toggleStyle(StaticToggleStyle())
                             .padding()
-                        Toggle("Pour", isOn: $pourOn)
+                        Toggle("", isOn: $pourOn)
+                            .toggleStyle(PourToggleStyle())
                             .onChange(of: pourOn) { newValue in
                                 controls.pourOn = pourOn
                             }
                             .padding()
                     }
+
                     HStack {
                         // shows different information here (user color settings, size settings)
                         Spacer()
