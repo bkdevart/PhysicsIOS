@@ -133,18 +133,18 @@ struct ContentView: View {
                     Image(systemName: configuration.isOn ?
                             "drop.fill" : "drop")
                         .renderingMode(.template)
-                        .foregroundColor(configuration.isOn ? .red : .black)
+                        .foregroundColor(configuration.isOn ? .cyan : .black)
                         .font(.system(size: 50))
                 })
                 .buttonStyle(PlainButtonStyle())
      
 //                Spacer().frame(height: 20)
      
-                Text(configuration.isOn ?
-                        "on" :
-                        "off")
-//                    .italic()
-                    .foregroundColor(.gray)
+//                Text(configuration.isOn ?
+//                        "on" :
+//                        "off")
+////                    .italic()
+//                    .foregroundColor(.gray)
             }
         }
     }
@@ -158,18 +158,21 @@ struct ContentView: View {
                     Image(systemName: configuration.isOn ?
                           "hand.raised.brakesignal": "brakesignal")
                         .renderingMode(.template)
-                        .foregroundColor(configuration.isOn ? .red : .black)
+                        .foregroundColor(configuration.isOn ? .cyan : .black)
                         .font(.system(size: 50))
                 })
                 .buttonStyle(PlainButtonStyle())
      
 //                Spacer().frame(height: 20)
      
-                Text(configuration.isOn ?
-                        "on" :
-                        "off")
+//                Text(configuration.isOn ?
+//                        "on" :
+//                        "off")
+//                    .foregroundColor(.gray)
 //                    .italic()
-                    .foregroundColor(.gray)
+//                    .minimumScaleFactor(0.5)
+//                    .allowsTightening(false)
+//                    .frame(width: 5)
             }
         }
     }
@@ -183,18 +186,18 @@ struct ContentView: View {
                     Image(systemName: configuration.isOn ?
                           "eraser.fill": "eraser")
                         .renderingMode(.template)
-                        .foregroundColor(configuration.isOn ? .red : .black)
+                        .foregroundColor(configuration.isOn ? .cyan : .black)
                         .font(.system(size: 50))
                 })
                 .buttonStyle(PlainButtonStyle())
      
 //                Spacer().frame(height: 20)
      
-                Text(configuration.isOn ?
-                        "on" :
-                        "off")
-//                    .italic()
-                    .foregroundColor(.gray)
+//                Text(configuration.isOn ?
+//                        "on" :
+//                        "off")
+////                    .italic()
+//                    .foregroundColor(.gray)
             }
         }
     }
@@ -205,11 +208,10 @@ struct ContentView: View {
             
         NavigationView {
             Group {
+                // TODO: make this stack tighter (space above shape picker?)
                 VStack {
                     // TODO: find a way to use Geometry Reader to dynamically fit and keep correct ratio for boxes
                     // LayoutAndGeometry from 100 days of swiftui could be helpful
-                    
-                    
                     HStack {
                         VStack {
                             Picker("Shape", selection: $selectedShape) {
@@ -263,41 +265,6 @@ struct ContentView: View {
                         .padding()
                     }
                     HStack {
-                        GeometryReader { geometry in
-                            let width = geometry.size.width
-//                            let height = geometry.size.height
-                            
-                            // this view contains the physics (will letter box if smaller than view area reserved for physics)
-                            // note: width is limited whether it is full frame or not
-                            SpriteView(scene: scene)
-                                .frame(width: width)
-//                                .ignoresSafeArea()
-                                .onAppear{ self.storeGeometry(for: geometry) }
-                        }
-                    }
-                    // choose how to add/remove shapes to the physics environment
-                    Picker("AddMethod", selection: $addMethod) {
-                        Text("Add").tag(AddMethod.add)
-                        Text("Paint").tag(AddMethod.paint)
-                    }
-                    .onChange(of: addMethod, perform: addMethodChanged)
-                    HStack {
-                        HStack {
-                            Text("Density")
-                            Slider(value: $density, in: 0...10, step: 1.0)
-                                .padding([.horizontal])
-                                .onChange(of: Float(density), perform: sliderDensityChanged)
-                        }
-                        .padding()
-                        HStack {
-                            Text("L Damp")
-                            Slider(value: $linearDamping, in: 0...1, step: 0.1)
-                                .padding([.horizontal])
-                                .onChange(of: Float(linearDamping), perform: sliderLinearDampingChanged)
-                        }
-                        .padding()
-                    }
-                    HStack {
                         Toggle("Clear", isOn: $removeOn)
                             .onChange(of: removeOn) { newValue in
                                 controls.removeOn = removeOn
@@ -316,7 +283,43 @@ struct ContentView: View {
                                 controls.pourOn = pourOn
                             }
                             .padding()
+                        // choose how to add/remove shapes to the physics environment
+                        Picker("AddMethod", selection: $addMethod) {
+                            Text("Add").tag(AddMethod.add)
+                            Text("Paint").tag(AddMethod.paint)
+                        }
+                        .onChange(of: addMethod, perform: addMethodChanged)
                     }
+                    HStack {
+                        GeometryReader { geometry in
+                            let width = geometry.size.width
+//                            let height = geometry.size.height
+                            
+                            // this view contains the physics (will letter box if smaller than view area reserved for physics)
+                            // note: width is limited whether it is full frame or not
+                            SpriteView(scene: scene)
+                                .frame(width: width)
+//                                .ignoresSafeArea()
+                                .onAppear{ self.storeGeometry(for: geometry) }
+                        }
+                    }
+                    HStack {
+                        HStack {
+                            Text("Density")
+                            Slider(value: $density, in: 0...10, step: 1.0)
+                                .padding([.horizontal])
+                                .onChange(of: Float(density), perform: sliderDensityChanged)
+                        }
+                        .padding()
+                        HStack {
+                            Text("L Damp")
+                            Slider(value: $linearDamping, in: 0...1, step: 0.1)
+                                .padding([.horizontal])
+                                .onChange(of: Float(linearDamping), perform: sliderLinearDampingChanged)
+                        }
+                        .padding()
+                    }
+                    
 
                     HStack {
                         // shows different information here (user color settings, size settings)
