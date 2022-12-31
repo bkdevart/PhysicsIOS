@@ -63,7 +63,7 @@ enum AddMethod: String, CaseIterable, Identifiable {
 
 struct ContentView: View {
     // default box/color values - these are initialized in UIJoin (may not need values?)
-    // TODO: these values are synced with default values in UIJoin - make one?
+    // TODO: these values are synced with default values in UIJoin - make all in one place?
     // value may be needed at start (based on how initialization is handled)
     // Cannot use instance member 'controls' within property initializer; property initializers run before 'self' is available
     @State private var boxHeight = 6.0
@@ -115,15 +115,9 @@ struct ContentView: View {
         controls.gameScene = scene
         controls.camera = cameraNode
         
-//        // TODO:  override the scene’s didChangeSize(_:) method, which is called whenever the scene changes size. When this method is called, you should update the scene’s contents to match the new size.
-//        override func didChangeSize(_ oldSize: CGSize) {
-//            print("Screen changed!")
-//        }
-        
         return scene
     }
     
-    // TODO: play with layout to optimize for screen space in the middle
     struct PourToggleStyle: ToggleStyle {
         func makeBody(configuration: Configuration) -> some View {
             HStack {
@@ -137,14 +131,6 @@ struct ContentView: View {
                         .font(.system(size: 50))
                 })
                 .buttonStyle(PlainButtonStyle())
-     
-//                Spacer().frame(height: 20)
-     
-//                Text(configuration.isOn ?
-//                        "on" :
-//                        "off")
-////                    .italic()
-//                    .foregroundColor(.gray)
             }
         }
     }
@@ -162,17 +148,6 @@ struct ContentView: View {
                         .font(.system(size: 50))
                 })
                 .buttonStyle(PlainButtonStyle())
-     
-//                Spacer().frame(height: 20)
-     
-//                Text(configuration.isOn ?
-//                        "on" :
-//                        "off")
-//                    .foregroundColor(.gray)
-//                    .italic()
-//                    .minimumScaleFactor(0.5)
-//                    .allowsTightening(false)
-//                    .frame(width: 5)
             }
         }
     }
@@ -187,17 +162,10 @@ struct ContentView: View {
                           "eraser.fill": "eraser")
                         .renderingMode(.template)
                         .foregroundColor(configuration.isOn ? .cyan : .black)
-                        .font(.system(size: 50))
+                        // this is a workaround to keep the window from resizing and clearing sprite objects
+                        .font(configuration.isOn ? .system(size: 50) : .system(size: 49))
                 })
                 .buttonStyle(PlainButtonStyle())
-     
-//                Spacer().frame(height: 20)
-     
-//                Text(configuration.isOn ?
-//                        "on" :
-//                        "off")
-////                    .italic()
-//                    .foregroundColor(.gray)
             }
         }
     }
@@ -209,7 +177,6 @@ struct ContentView: View {
         NavigationView {
             
             Group {
-                // TODO: make this stack tighter (space above shape picker?)
                 VStack {
                     // TODO: find a way to use Geometry Reader to dynamically fit and keep correct ratio for boxes
                     // LayoutAndGeometry from 100 days of swiftui could be helpful
@@ -271,19 +238,19 @@ struct ContentView: View {
                                 controls.removeOn = removeOn
                             }
                             .toggleStyle(ClearToggleStyle())  // clearing objects here for some reason
-                            .padding()
+//                            .padding()
                         Toggle("Static", isOn: $staticNode)
                             .onChange(of: staticNode) { newValue in
                                 controls.staticNode = staticNode
                             }
                             .toggleStyle(StaticToggleStyle())
-                            .padding()
+//                            .padding()
                         Toggle("", isOn: $pourOn)
                             .toggleStyle(PourToggleStyle())
                             .onChange(of: pourOn) { newValue in
                                 controls.pourOn = pourOn
                             }
-                            .padding()
+//                            .padding()
                         // choose how to add/remove shapes to the physics environment
                         Picker("AddMethod", selection: $addMethod) {
                             Text("Add").tag(AddMethod.add)
@@ -291,6 +258,7 @@ struct ContentView: View {
                         }
                         .onChange(of: addMethod, perform: addMethodChanged)
                     }
+                    .padding([.bottom, .top], 2)
                     HStack {
                         GeometryReader { geometry in
                             let width = geometry.size.width

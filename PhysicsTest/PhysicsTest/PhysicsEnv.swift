@@ -21,6 +21,14 @@ class GameScene: SKScene {
 //        var physicScene: SpriteView
 //    }
     
+    // TODO:  override the scene’s didChangeSize(_:) method, which is called whenever the scene changes size. When this method is called, you should update the scene’s contents to match the new size.
+    override func didChangeSize(_ oldSize: CGSize) {
+        // a number here to track (useful for debug for now)
+        controls.screenSizeChangeCount += 1
+        print("Screen changed \(controls.screenSizeChangeCount) times!")
+        print("New size:\(size)")
+    }
+    
     // when the scene is presented by the view, didMove activates and triggers the physics engine environment
     override func didMove(to view: SKView) {
         // TODO: play with this (and allow user to)
@@ -29,7 +37,7 @@ class GameScene: SKScene {
 
     // release
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        // TODO: use this to release object (instead of start of touch event)
+        // using this to release physics objects (instead of start of touch event)
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
 
@@ -48,7 +56,6 @@ class GameScene: SKScene {
 //            }
 //            controls.selectedNode.removeFromParent()
         case .add:
-            // TODO: none of these conditions are satisfied correctly when dragging and dropping, resulting in object being dragged and another being dropped as well
             let touchedNodes = nodes(at: location)
             controls.selectedNodes = touchedNodes
             // will crash here if no nodes are touched
@@ -61,7 +68,7 @@ class GameScene: SKScene {
                     controls.drop = false
                     // if removeOn is set, clear node
                     if controls.removeOn {
-                        // TODO: see if this runs (breakpoint doesn't trigger when toggling, clicking)
+                        // TODO: see which conditions this runs (breakpoint doesn't always trigger when toggling, clicking)
                         print(controls.selectedNode)
                         controls.selectedNode.removeFromParent()
                     }
@@ -173,7 +180,7 @@ class GameScene: SKScene {
             }
             controls.selectedNode.removeFromParent()
         case .add:
-            // TODO: see what you neeed to keep from this code after implementing drop
+            // TODO: see what you neeed to keep from this code after implementing drop (touchesEnded)
             let touchedNodes = nodes(at: location)
             controls.selectedNodes = touchedNodes
             // will crash here if no nodes are touched
@@ -184,7 +191,6 @@ class GameScene: SKScene {
                     controls.selectedNode = touchedNodes[0]
                     // if removeOn is set, clear node
                     if controls.removeOn {
-                        // TODO: is this causing clear screen error with clear toggle?
                         controls.selectedNode.removeFromParent()
                     }
             } else {
