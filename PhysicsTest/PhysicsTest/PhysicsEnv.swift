@@ -34,7 +34,7 @@ class GameScene: SKScene {
         let location = touch.location(in: self)
 
         switch controls.addMethod {
-        // TODO: clear doesn't exist in dropdown currently
+        // TODO: clear doesn't exist in dropdown currently, so this is arbitrary code
         case .clear:
             // select node and delete only that one
             let touchedNodes = nodes(at: location)
@@ -57,10 +57,12 @@ class GameScene: SKScene {
                 if touchedNodes[0].zPosition != -5 {
                     // log node so that drag motion works
                     controls.selectedNode = touchedNodes[0]
-                    // TODO: turn drop switch off
+                    // turn drop switch off
                     controls.drop = false
                     // if removeOn is set, clear node
                     if controls.removeOn {
+                        // TODO: see if this runs (breakpoint doesn't trigger when toggling, clicking)
+                        print(controls.selectedNode)
                         controls.selectedNode.removeFromParent()
                     }
                 } else {
@@ -129,27 +131,14 @@ class GameScene: SKScene {
                         addChild(newNode)
                     }
                     
-                    // TODO: create camera code
-                    // store current camera position before moving on
-//                    let originalCam = controls.camera.position  //camera.position
-//                    let center = view!.center
-//                    controls.camera.position = center
-//                    let xDist = location.x - center.x
-//                    let yDist = location.y - center.y
-//                    let distance = sqrt((xDist * xDist) + (yDist * yDist)) * 0.02
-//                    let xPos = xDist * distance * 0.08
-//                    let yPos = yDist * distance * 0.08
-//                    camera?.position.x = -xPos  // was +=
-//                    camera?.position.y = -yPos  // was -=
-//                    // force unwrap here assumes the camera was created in view
-//                    print("\(camera?.position.x), \(camera?.position.y)")
-//                    controls.camera = camera!
-                    
+                    // camera code
                     let location = touch.location(in: self)
                     let previousLocation = touch.previousLocation(in: self)
 
                     camera?.position.x += location.x - previousLocation.x
                     camera?.position.y += location.y - previousLocation.y
+                    
+                    // TODO: do I need to store the position of the camera?
                 }
             }
         case .paint:
@@ -169,7 +158,7 @@ class GameScene: SKScene {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
    
-        print(touches.count)
+//        print(touches.count)
         switch controls.addMethod {
         case .clear:
             // select node and delete only that one
@@ -195,6 +184,7 @@ class GameScene: SKScene {
                     controls.selectedNode = touchedNodes[0]
                     // if removeOn is set, clear node
                     if controls.removeOn {
+                        // TODO: is this causing clear screen error with clear toggle?
                         controls.selectedNode.removeFromParent()
                     }
             } else {

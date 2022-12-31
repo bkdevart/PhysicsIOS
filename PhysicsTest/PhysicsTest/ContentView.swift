@@ -85,12 +85,6 @@ struct ContentView: View {
     @State private var addMethod: AddMethod = .add
     @State public var removeOn = false
     @State public var pourOn = false
-
-    
-    // TODO:  override the scene’s didChangeSize(_:) method, which is called whenever the scene changes size. When this method is called, you should update the scene’s contents to match the new size.
-//    override func didChangeSize(_:) {
-//
-//    }
     
     var scene: SKScene {
         // making this square helps with ratio issues when drawing shapes
@@ -120,6 +114,12 @@ struct ContentView: View {
         // update shared references
         controls.gameScene = scene
         controls.camera = cameraNode
+        
+//        // TODO:  override the scene’s didChangeSize(_:) method, which is called whenever the scene changes size. When this method is called, you should update the scene’s contents to match the new size.
+//        override func didChangeSize(_ oldSize: CGSize) {
+//            print("Screen changed!")
+//        }
+        
         return scene
     }
     
@@ -207,6 +207,7 @@ struct ContentView: View {
 
             
         NavigationView {
+            
             Group {
                 // TODO: make this stack tighter (space above shape picker?)
                 VStack {
@@ -269,7 +270,7 @@ struct ContentView: View {
                             .onChange(of: removeOn) { newValue in
                                 controls.removeOn = removeOn
                             }
-                            .toggleStyle(ClearToggleStyle())
+                            .toggleStyle(ClearToggleStyle())  // clearing objects here for some reason
                             .padding()
                         Toggle("Static", isOn: $staticNode)
                             .onChange(of: staticNode) { newValue in
