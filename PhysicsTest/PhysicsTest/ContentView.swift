@@ -30,7 +30,9 @@
  - Clear all removes camera node
  
  Feature ideas
+ - Debug window - have listview that shows all nodes along with their properties when selected
  - Zoom in/out on a larger, boundry-defined scene
+ - Camera lock button
  - Adjust gravity based on tilt of phone
  - Persistance - save state whenever phone is turned
     - Allow user to set number of saves (just rolls and deletes old as new added)
@@ -43,6 +45,8 @@
  - Obstacle navigation
  - Boom blox
  - Gravity (simulate planets)
+ - Different modes (sassy mode tells you things that are misleading like it erased when it saved, etc)
+
  */
 
 import SwiftUI
@@ -127,7 +131,7 @@ struct ContentView: View {
                     Image(systemName: configuration.isOn ?
                             "drop.fill" : "drop")
                         .renderingMode(.template)
-                        .foregroundColor(configuration.isOn ? .cyan : .black)
+//                        .foregroundColor(configuration.isOn ? .cyan : .black)
                         .font(.system(size: 50))
                 })
                 .buttonStyle(PlainButtonStyle())
@@ -144,7 +148,9 @@ struct ContentView: View {
                     Image(systemName: configuration.isOn ?
                           "hand.raised.brakesignal": "brakesignal")
                         .renderingMode(.template)
-                        .foregroundColor(configuration.isOn ? .cyan : .black)
+                        // TODO: change this to the color selected by the picker
+//                        .foregroundColor(configuration.isOn ? Color(red: controls.r, green: controls.g, blue: controls.b) : .black)
+//                        .foregroundColor(configuration.isOn ? .cyan : .black)
                         .font(.system(size: 50))
                 })
                 .buttonStyle(PlainButtonStyle())
@@ -161,7 +167,6 @@ struct ContentView: View {
                     Image(systemName: configuration.isOn ?
                           "eraser.fill": "eraser")
                         .renderingMode(.template)
-                        .foregroundColor(configuration.isOn ? .cyan : .black)
                         // this is a workaround to keep the window from resizing and clearing sprite objects
                         .font(configuration.isOn ? .system(size: 50) : .system(size: 49))
                 })
@@ -237,20 +242,20 @@ struct ContentView: View {
                             .onChange(of: removeOn) { newValue in
                                 controls.removeOn = removeOn
                             }
-                            .toggleStyle(ClearToggleStyle())  // clearing objects here for some reason
-//                            .padding()
+                            .toggleStyle(ClearToggleStyle())
+                            .foregroundColor(removeOn ? Color(red: r, green: g, blue: b) : .black)
                         Toggle("Static", isOn: $staticNode)
                             .onChange(of: staticNode) { newValue in
                                 controls.staticNode = staticNode
                             }
                             .toggleStyle(StaticToggleStyle())
-//                            .padding()
+                            .foregroundColor(staticNode ? Color(red: r, green: g, blue: b) : .black)
                         Toggle("", isOn: $pourOn)
                             .toggleStyle(PourToggleStyle())
+                            .foregroundColor(pourOn ? Color(red: r, green: g, blue: b) : .black)
                             .onChange(of: pourOn) { newValue in
                                 controls.pourOn = pourOn
                             }
-//                            .padding()
                         // choose how to add/remove shapes to the physics environment
                         Picker("AddMethod", selection: $addMethod) {
                             Text("Add").tag(AddMethod.add)
