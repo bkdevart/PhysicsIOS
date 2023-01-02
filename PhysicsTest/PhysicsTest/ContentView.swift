@@ -65,6 +65,7 @@ enum AddMethod: String, CaseIterable, Identifiable {
 
 
 struct ContentView: View {
+    @Environment(\.colorScheme) var currentMode
     // default box/color values - these are initialized in UIJoin (may not need values?)
     // TODO: these values are synced with default values in UIJoin - make all in one place?
     // value may be needed at start (based on how initialization is handled)
@@ -191,8 +192,10 @@ struct ContentView: View {
 
     var body: some View {
 
-            
+        
         NavigationView {
+            
+
             
             Group {
                 VStack {
@@ -256,22 +259,22 @@ struct ContentView: View {
                                 controls.removeOn = removeOn
                             }
                             .toggleStyle(ClearToggleStyle())
-                            .foregroundColor(removeOn ? Color(red: r, green: g, blue: b) : .black)
+                            .foregroundColor(removeOn && currentMode == .light ? .black : Color(red: r, green: g, blue: b))
                         Toggle("Static", isOn: $staticNode)
                             .onChange(of: staticNode) { newValue in
                                 controls.staticNode = staticNode
                             }
                             .toggleStyle(StaticToggleStyle())
-                            .foregroundColor(staticNode ? Color(red: r, green: g, blue: b) : .black)
+                            .foregroundColor(staticNode && currentMode == .light ? .black : Color(red: r, green: g, blue: b))
                         Toggle("Pour", isOn: $pourOn)
                             .toggleStyle(PourToggleStyle())
-                            .foregroundColor(pourOn ? Color(red: r, green: g, blue: b) : .black)
+                            .foregroundColor(pourOn && currentMode == .light ? .black : Color(red: r, green: g, blue: b))
                             .onChange(of: pourOn) { newValue in
                                 controls.pourOn = pourOn
                             }
                         Toggle("Camera Lock", isOn: $cameraLocked)
                             .toggleStyle(CameraToggleStyle())
-                            .foregroundColor(cameraLocked ? .black : Color(red: r, green: g, blue: b))
+                            .foregroundColor(cameraLocked && currentMode == .light ? .black : Color(red: r, green: g, blue: b))
                             .onChange(of: cameraLocked) { newValue in
                                 controls.cameraLocked = cameraLocked
                             }
