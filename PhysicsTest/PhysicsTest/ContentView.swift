@@ -15,7 +15,7 @@
     - make user-defined shapes
  - Interaction
     - have mode that pauses physics/other interactions and allows you to place items locked in place
-    - combine drag and pour methods into dynamic action
+    - (other mode) combine drag and pour methods into dynamic action
         - if tapping a node, go into drag mode
         - if not tapping a node, go into drop/pour mode based on if tap or drag motion
         - have toggle mode for clearing nodes (on/off switch)
@@ -32,7 +32,6 @@
  Feature ideas
  - Debug window - have listview that shows all nodes along with their properties when selected
  - Zoom in/out on a larger, boundry-defined scene
- - Camera lock button
  - Adjust gravity based on tilt of phone
  - Persistance - save state whenever phone is turned
     - Allow user to set number of saves (just rolls and deletes old as new added)
@@ -89,6 +88,7 @@ struct ContentView: View {
     @State private var addMethod: AddMethod = .add
     @State public var removeOn = false
     @State public var pourOn = false
+    @State public var cameraLocked = true
     
     var scene: SKScene {
         // making this square helps with ratio issues when drawing shapes
@@ -148,9 +148,6 @@ struct ContentView: View {
                     Image(systemName: configuration.isOn ?
                           "hand.raised.brakesignal": "brakesignal")
                         .renderingMode(.template)
-                        // TODO: change this to the color selected by the picker
-//                        .foregroundColor(configuration.isOn ? Color(red: controls.r, green: controls.g, blue: controls.b) : .black)
-//                        .foregroundColor(configuration.isOn ? .cyan : .black)
                         .font(.system(size: 50))
                 })
                 .buttonStyle(PlainButtonStyle())
@@ -175,6 +172,22 @@ struct ContentView: View {
         }
     }
     
+    //
+    struct CameraToggleStyle: ToggleStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            HStack {
+                Button(action: {
+                    configuration.isOn.toggle()
+                }, label: {
+                    Image(systemName: configuration.isOn ?
+                          "video" : "arrow.up.right.video")
+                        .renderingMode(.template)
+                        .font(.system(size: 50))
+                })
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+    }
 
     var body: some View {
 
@@ -250,11 +263,17 @@ struct ContentView: View {
                             }
                             .toggleStyle(StaticToggleStyle())
                             .foregroundColor(staticNode ? Color(red: r, green: g, blue: b) : .black)
-                        Toggle("", isOn: $pourOn)
+                        Toggle("Pour", isOn: $pourOn)
                             .toggleStyle(PourToggleStyle())
                             .foregroundColor(pourOn ? Color(red: r, green: g, blue: b) : .black)
                             .onChange(of: pourOn) { newValue in
                                 controls.pourOn = pourOn
+                            }
+                        Toggle("Camera Lock", isOn: $cameraLocked)
+                            .toggleStyle(CameraToggleStyle())
+                            .foregroundColor(cameraLocked ? .black : Color(red: r, green: g, blue: b))
+                            .onChange(of: cameraLocked) { newValue in
+                                controls.cameraLocked = cameraLocked
                             }
                         // choose how to add/remove shapes to the physics environment
                         Picker("AddMethod", selection: $addMethod) {

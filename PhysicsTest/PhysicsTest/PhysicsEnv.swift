@@ -133,19 +133,24 @@ class GameScene: SKScene {
                     }
                 } else {
                     // pour code
-                    if controls.pourOn {
+                    if controls.pourOn  && controls.cameraLocked {
                         let newNode = renderNode(location: location, hasPhysics: true)
                         addChild(newNode)
+                    } else {
+                        if controls.cameraLocked == false {
+                            // camera code
+                            let location = touch.location(in: self)
+                            let previousLocation = touch.previousLocation(in: self)
+                            
+                            camera?.position.x += location.x - previousLocation.x
+                            camera?.position.y += location.y - previousLocation.y
+                            
+                            // TODO: do I need to store the position of the camera?
+                            
+                        }
+                        
                     }
                     
-                    // camera code
-                    let location = touch.location(in: self)
-                    let previousLocation = touch.previousLocation(in: self)
-
-                    camera?.position.x += location.x - previousLocation.x
-                    camera?.position.y += location.y - previousLocation.y
-                    
-                    // TODO: do I need to store the position of the camera?
                 }
             }
         case .paint:

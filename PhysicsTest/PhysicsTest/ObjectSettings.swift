@@ -31,6 +31,7 @@ class UIJoin: ObservableObject {
     @Published var scalePixels = 1.0  // generic default value
     @Published var drop = true
     @Published var screenSizeChangeCount = 0  // counts times screen is resized during run
+    @Published var cameraLocked = true
     
     // TODO: capture state of entire scene - not codable, deconstruct
     @Published var gameScene = SKScene()
