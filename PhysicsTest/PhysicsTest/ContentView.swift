@@ -22,6 +22,7 @@
         - add paint mode switch
  
  Bugs
+ - Camera icon for toggle looks black instead of color of slider
  - Adding a node can happen sometimes when dragging one (it appears watching others)
  - Drag method that checks for background layer makes drag very jittery, sometimes objects drop and return to mouse
  - Pour method does not work when there is a background node where touch starts
@@ -63,7 +64,6 @@ enum AddMethod: String, CaseIterable, Identifiable {
 }
 
 
-
 struct ContentView: View {
     @Environment(\.colorScheme) var currentMode
     // default box/color values - these are initialized in UIJoin (may not need values?)
@@ -90,6 +90,17 @@ struct ContentView: View {
     @State public var removeOn = false
     @State public var pourOn = false
     @State public var cameraLocked = true
+    @State public var cameraZoom = 1.0
+    @GestureState var magnifyBy = 1.0
+    
+    var magnification: some Gesture {
+        MagnificationGesture()
+            .updating($magnifyBy) { currentState, gestureState, transaction in
+                gestureState = currentState
+            }
+    }
+    
+    
     
     var scene: SKScene {
         // making this square helps with ratio issues when drawing shapes
@@ -191,12 +202,12 @@ struct ContentView: View {
     }
 
     var body: some View {
+        
+//        @State var cameraZoom = 1.0
+
 
         
         NavigationView {
-            
-
-            
             Group {
                 VStack {
                     // TODO: find a way to use Geometry Reader to dynamically fit and keep correct ratio for boxes
@@ -209,7 +220,8 @@ struct ContentView: View {
                                 Text("Triangle").tag(Shape.triangle)
                             }
                             .onChange(of: selectedShape, perform: shapeChanged)
-                            Text("\(selectedShape.rawValue) size")
+//                            Text("\(selectedShape.rawValue) size")
+                            
                             HStack {
                                 Text("H")
                                 Slider(value: $boxHeight, in: 1...100, step: 1)
@@ -222,10 +234,15 @@ struct ContentView: View {
                                     .padding([.horizontal])
                                     .onChange(of: boxWidth, perform: sliderBoxWidthChanged)
                             }
+                            HStack {
+                                Text("C")
+                                Slider(value: $cameraZoom, in: 0.1...1.0, step: 0.05)
+                                    .padding([.horizontal])
+                                    .onChange(of: cameraZoom, perform: sliderCameraZoomChanged)
+                            }
                         }
                         .padding()
                         VStack {
-                            Text("Color")
                             VStack {
                                 // TODO: see if you can caculate complimentary color to current and adjust RGB text to match
                                 HStack {
@@ -259,22 +276,23 @@ struct ContentView: View {
                                 controls.removeOn = removeOn
                             }
                             .toggleStyle(ClearToggleStyle())
-                            .foregroundColor(removeOn && currentMode == .light ? .black : Color(red: r, green: g, blue: b))
+                            .foregroundColor(removeOn ? Color(red: r, green: g, blue: b) : .black)
                         Toggle("Static", isOn: $staticNode)
                             .onChange(of: staticNode) { newValue in
                                 controls.staticNode = staticNode
                             }
                             .toggleStyle(StaticToggleStyle())
-                            .foregroundColor(staticNode && currentMode == .light ? .black : Color(red: r, green: g, blue: b))
+                            .foregroundColor(staticNode ? Color(red: r, green: g, blue: b) : .black)
                         Toggle("Pour", isOn: $pourOn)
                             .toggleStyle(PourToggleStyle())
-                            .foregroundColor(pourOn && currentMode == .light ? .black : Color(red: r, green: g, blue: b))
+                            .foregroundColor(pourOn ? Color(red: r, green: g, blue: b) : .black)
                             .onChange(of: pourOn) { newValue in
                                 controls.pourOn = pourOn
                             }
+                        // && currentMode == .light
                         Toggle("Camera Lock", isOn: $cameraLocked)
                             .toggleStyle(CameraToggleStyle())
-                            .foregroundColor(cameraLocked && currentMode == .light ? .black : Color(red: r, green: g, blue: b))
+                            .foregroundColor(cameraLocked ? .black : Color(red: r, green: g, blue: b))
                             .onChange(of: cameraLocked) { newValue in
                                 controls.cameraLocked = cameraLocked
                             }
@@ -295,8 +313,10 @@ struct ContentView: View {
                             // note: width is limited whether it is full frame or not
                             SpriteView(scene: scene)
                                 .frame(width: width)
+                                .gesture(magnification)
 //                                .ignoresSafeArea()
                                 .onAppear{ self.storeGeometry(for: geometry) }
+                            
                         }
                     }
                     HStack {
@@ -356,6 +376,14 @@ struct ContentView: View {
     
     private func sliderBoxWidthChanged(to newValue: Double) {
         controls.boxWidth = Double(newValue.rounded())
+    }
+    
+    private func sliderCameraZoomChanged(to newValue: Double) {
+        // TODO: this doesn't seem to work
+//        let zoomInAction = SKAction.scale(to: newValue, duration: 1)
+//        let cameraNode = controls.gameScene.camera
+//        cameraNode.run(zoomInAction)
+        controls.cameraZoom = newValue
     }
     
     private func shapeChanged(to newValue: Shape) {
