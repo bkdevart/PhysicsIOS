@@ -31,6 +31,9 @@
  - Clear all removes camera node
  
  Feature ideas
+ - Let user change paint objects into physics objects (make toggle switch for falling ball) - figure.fall.circle, digitalcrown.arrow.counterclockwise.fill
+ - add option to shade objects and show they are rotating
+ - draw edge around border of physics environment
  - Debug window - have listview that shows all nodes along with their properties when selected
  - Zoom in/out on a larger, boundry-defined scene
  - Adjust gravity based on tilt of phone
@@ -41,6 +44,7 @@
  - make new view, use pop up menu to put all controls in to free up screen
  
  Game ideas
+ - Quantum wall
  - Wrecking ball
  - Obstacle navigation
  - Boom blox
@@ -119,6 +123,25 @@ struct ContentView: View {
         scene.size = CGSize(width: scalePixels, height: scalePixels)
         scene.scaleMode = .aspectFit  // .aspectFill // .resizeFill  // .aspectFit
         scene.view?.showsDrawCount = true
+        
+        // pinc to zoom gesture code
+//        var previousCameraScale = CGFloat()
+        
+//        override func sceneDidLoad() {
+//            let pinchGesture = UIPinchGestureRecognizer()
+//            pinchGesture.addTarget(self, action: #selector(pinchGestureAction(_:)))
+//            view?.addGestureRecognizer(pinchGesture)
+//        }
+//        
+//        @objc func pinchGestureAction(_ sender: UIPinchGestureRecognizer) {
+//            guard let camera = self.camera else {
+//                return
+//            }
+//            if sender.state == .began {
+//                previousCameraScale = camera.xScale
+//            }
+//            camera.setScale(previousCameraScale * 1 / sender.scale)
+//        }
         
         // add camera node
         let cameraNode = SKCameraNode()
@@ -276,23 +299,23 @@ struct ContentView: View {
                                 controls.removeOn = removeOn
                             }
                             .toggleStyle(ClearToggleStyle())
-                            .foregroundColor(removeOn ? Color(red: r, green: g, blue: b) : .black)
+                            .foregroundColor(Color(red: r, green: g, blue: b))
                         Toggle("Static", isOn: $staticNode)
                             .onChange(of: staticNode) { newValue in
                                 controls.staticNode = staticNode
                             }
                             .toggleStyle(StaticToggleStyle())
-                            .foregroundColor(staticNode ? Color(red: r, green: g, blue: b) : .black)
+                            .foregroundColor(Color(red: r, green: g, blue: b))
                         Toggle("Pour", isOn: $pourOn)
                             .toggleStyle(PourToggleStyle())
-                            .foregroundColor(pourOn ? Color(red: r, green: g, blue: b) : .black)
+                            .foregroundColor(Color(red: r, green: g, blue: b))
                             .onChange(of: pourOn) { newValue in
                                 controls.pourOn = pourOn
                             }
                         // && currentMode == .light
                         Toggle("Camera Lock", isOn: $cameraLocked)
                             .toggleStyle(CameraToggleStyle())
-                            .foregroundColor(cameraLocked ? .black : Color(red: r, green: g, blue: b))
+                            .foregroundColor(Color(red: r, green: g, blue: b))
                             .onChange(of: cameraLocked) { newValue in
                                 controls.cameraLocked = cameraLocked
                             }
