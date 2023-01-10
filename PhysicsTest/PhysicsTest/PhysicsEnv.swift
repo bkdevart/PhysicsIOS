@@ -32,21 +32,21 @@ class GameScene: SKScene {
     var previousCameraScale = CGFloat()
     
     override func sceneDidLoad() {
-        let pinchGesture = UIPinchGestureRecognizer()
-        pinchGesture.addTarget(self, action: #selector(pinchGestureAction(_:)))
-        view?.addGestureRecognizer(pinchGesture)
+//        let pinchGesture = UIPinchGestureRecognizer()
+//        pinchGesture.addTarget(self, action: #selector(pinchGestureAction(_:)))
+//        view?.addGestureRecognizer(pinchGesture)
     }
     
-    @objc func pinchGestureAction(_ sender: UIPinchGestureRecognizer) {
-        guard let camera = self.camera else {
-            return
-        }
-        if sender.state == .began {
-            previousCameraScale = camera.xScale
-        }
-        camera.setScale(previousCameraScale * 1 / sender.scale)
-        print("pinched!")
-    }
+//    @objc func pinchGestureAction(_ sender: UIPinchGestureRecognizer) {
+//        guard let camera = self.camera else {
+//            return
+//        }
+//        if sender.state == .began {
+//            previousCameraScale = camera.xScale
+//        }
+//        camera.setScale(previousCameraScale * 1 / sender.scale)
+//        print("pinched!")
+//    }
     
     // when the scene is presented by the view, didMove activates and triggers the physics engine environment
     override func didMove(to view: SKView) {

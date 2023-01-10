@@ -22,7 +22,6 @@
         - add paint mode switch
  
  Bugs
- - Camera icon for toggle looks black instead of color of slider
  - Adding a node can happen sometimes when dragging one (it appears watching others)
  - Drag method that checks for background layer makes drag very jittery, sometimes objects drop and return to mouse
  - Pour method does not work when there is a background node where touch starts
@@ -31,6 +30,7 @@
  - Clear all removes camera node
  
  Feature ideas
+ - make all objects physics objects that fall when you clear (fall to infinity)
  - Let user change paint objects into physics objects (make toggle switch for falling ball) - figure.fall.circle, digitalcrown.arrow.counterclockwise.fill
  - add option to shade objects and show they are rotating
  - draw edge around border of physics environment
@@ -104,8 +104,6 @@ struct ContentView: View {
             }
     }
     
-    
-    
     var scene: SKScene {
         // making this square helps with ratio issues when drawing shapes
         let scene = GameScene()
@@ -143,6 +141,8 @@ struct ContentView: View {
 //            camera.setScale(previousCameraScale * 1 / sender.scale)
 //        }
         
+        
+        
         // add camera node
         let cameraNode = SKCameraNode()
         cameraNode.position = CGPoint(x: scene.size.width / 2,
@@ -155,6 +155,61 @@ struct ContentView: View {
         controls.camera = cameraNode
         
         return scene
+    }
+    
+    struct MagnificationGestureView: View {
+
+        @GestureState var magnifyBy = 1.0
+
+        var scene: SKScene {
+            // making this square helps with ratio issues when drawing shapes
+            let scene = GameScene()
+            // TODO: make sure dynamic sizing is working properly - not sure if this is used
+//            let maxHeight = controls.screenHeight  // 2532
+//            let maxWidth = controls.screenWidth  // 1170
+            // TODO: create variable with smaller of two screen values to use for resizing
+//            var scalePixels = 1.0  // generic default value
+//            if maxHeight > maxWidth {
+//                scalePixels = maxWidth
+//            } else {
+//                scalePixels = maxHeight
+//            }
+//            controls.scalePixels = scalePixels
+            scene.size = CGSize(width: 391, height: 391)
+            scene.scaleMode = .aspectFit  // .aspectFill // .resizeFill  // .aspectFit
+            scene.view?.showsDrawCount = true
+            
+            // add camera node
+            let cameraNode = SKCameraNode()
+            cameraNode.position = CGPoint(x: scene.size.width / 2,
+                                          y: scene.size.height / 2)
+            scene.addChild(cameraNode)
+            scene.camera = cameraNode
+            
+            // update shared references
+//            controls.gameScene = scene
+//            controls.camera = cameraNode
+            
+            return scene
+        }
+        
+        var magnification: some Gesture {
+            MagnificationGesture()
+                .updating($magnifyBy) { currentState, gestureState, transaction in
+                    gestureState = currentState
+                }
+        }
+
+
+        
+        var body: some View {
+            SpriteView(scene: scene)
+                .gesture(magnification)
+//            Circle()
+//                .frame(width: 100, height: 100)
+//                .scaleEffect(magnifyBy)
+//                .gesture(magnification)
+        }
     }
     
     struct PourToggleStyle: ToggleStyle {
@@ -207,7 +262,7 @@ struct ContentView: View {
         }
     }
     
-    //
+    // this works opposite due to variable being set to false by default
     struct CameraToggleStyle: ToggleStyle {
         func makeBody(configuration: Configuration) -> some View {
             HStack {
@@ -332,14 +387,16 @@ struct ContentView: View {
                             let width = geometry.size.width
 //                            let height = geometry.size.height
                             
+                            
                             // this view contains the physics (will letter box if smaller than view area reserved for physics)
                             // note: width is limited whether it is full frame or not
-                            SpriteView(scene: scene)
-                                .frame(width: width)
-                                .gesture(magnification)
-//                                .ignoresSafeArea()
-                                .onAppear{ self.storeGeometry(for: geometry) }
-                            
+//                            SpriteView(scene: scene)
+//                                .frame(width: width)
+////                                .gesture(magnification)
+////                                .ignoresSafeArea()
+//                                .onAppear{ self.storeGeometry(for: geometry) }
+                            MagnificationGestureView()
+//                                .onAppear{ self.storeGeometry(for: geometry)
                         }
                     }
                     HStack {
