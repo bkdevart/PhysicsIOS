@@ -12,6 +12,12 @@ import Foundation
 class GameScene: SKScene {
     @ObservedObject var controls = UIJoin.shared
     
+    // vars used for camera gestures
+    var initialCenter = CGPoint()
+    var startX = CGFloat()
+    var startY = CGFloat()
+    var cameraScale = CGFloat()
+    
     
     // TODO: create object to store physics environment state
 //    struct physicEnvStruct: Codable, Identifiable {
@@ -35,48 +41,126 @@ class GameScene: SKScene {
         print("New size:\(size)")
     }
     
-    var previousCameraScale = CGFloat()
+//    var previousCameraScale = CGFloat()
     
     override func sceneDidLoad() {
-//        let pinchGesture = UIPinchGestureRecognizer()
-//        pinchGesture.addTarget(self, action: #selector(pinchGestureAction(_:)))
-//        view?.addGestureRecognizer(pinchGesture)
+
     }
-    
-//    @objc func pinchGestureAction(_ sender: UIPinchGestureRecognizer) {
-//        guard let camera = self.camera else {
-//            return
-//        }
-//        if sender.state == .began {
-//            previousCameraScale = camera.xScale
-//        }
-//        camera.setScale(previousCameraScale * 1 / sender.scale)
-//        print("pinched!")
-//    }
     
     // when the scene is presented by the view, didMove activates and triggers the physics engine environment
     override func didMove(to view: SKView) {
-        // play with physicsbody properties (and allow user to)
-        physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
-        let swipeRight = UISwipeGestureRecognizer(target: self,
-            action: #selector(GameScene.swipeRight(sender:)))
-        swipeRight.direction = .right
-        view.addGestureRecognizer(swipeRight)
+        // initialize physics environment
+        // playview will be mulitiplied by screenMultiply
+        let screenSizeX = 428.0  // dynamically do this later
+        let physicsSize = screenSizeX * controls.physicEnvScale
+        let cameraOrigin = CGPoint(x: 0, y: 0)  // x was (physicsSize / 2)
+        controls.cameraOrigin = cameraOrigin
+        let physicsZone = CGRect(origin: cameraOrigin, size: CGSize(width: physicsSize, height: physicsSize))
+        physicsBody = SKPhysicsBody(edgeLoopFrom: physicsZone)
+        
+//        let swipeRight = UISwipeGestureRecognizer(target: self,
+//            action: #selector(GameScene.swipeRight(sender:)))
+//        swipeRight.direction = .right
+//        view.addGestureRecognizer(swipeRight)
         
         // adding pinch recgonizer for camera zoom
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(GameScene.pinchDetected(sender:)))
         view.addGestureRecognizer(pinch)
+        
+        // adding camera PanGestureRecognizer
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(GameScene.panDetected(sender:)))
+        pan.minimumNumberOfTouches = 2
+        pan.maximumNumberOfTouches = 2
+        view.addGestureRecognizer(pan)
+        
+        // adding hidden 3 finger pan that moves scene on screen
+        let moveScreen = UIPanGestureRecognizer(target: self, action: #selector(GameScene.screenPanDetected(sender:)))
+        moveScreen.minimumNumberOfTouches = 3
+        moveScreen.maximumNumberOfTouches = 3
+        view.addGestureRecognizer(moveScreen)
     }
     
-    @objc func swipeRight(sender: UISwipeGestureRecognizer) {
-        // Handle the swipe
-        print("Swiped!")
+    // not using this, keeping in case a use appears
+//    @objc func swipeRight(sender: UISwipeGestureRecognizer) {
+//        // Handle the swipe
+//        print("Swiped right!")
+//    }
+    
+    @objc func pinchDetected(sender: UIPinchGestureRecognizer) {
+        // handle the pinch using scale value
+        guard camera != nil else {return}
+
+        if sender.state == .began {
+            // if controls aren't updated, view will snap back to old position
+            cameraScale = controls.camera.xScale
+            controls.usingCamGesture = true
+        }
+        // Update the position for the .began, .changed, and .ended states
+        if sender.state != .cancelled {
+            // Add the X and Y translation to the view's original position.
+            let newScale = cameraScale * 1 / sender.scale
+            camera?.setScale(newScale)
+            controls.camera.xScale = newScale
+            controls.usingCamGesture = false
+       }
+       else {
+            // On cancellation, return the piece to its original location.
+           camera?.setScale(cameraScale)
+            controls.usingCamGesture = false
+       }
     }
     
-    @objc func pinchDetected(sender: UISwipeGestureRecognizer) {
-        // Handle the swipe
-        print("Pinched!")
-        // TODO: figure out how to grab scale for camera zoom
+    // https://developer.apple.com/documentation/uikit/touches_presses_and_gestures/handling_uikit_gestures/handling_pan_gestures
+    @objc func panDetected(sender: UIPanGestureRecognizer) {
+        // handle the camera pan
+        guard sender.view != nil else {return}
+        guard camera != nil else {return}
+        let piece = sender.view!
+        
+        let translation = sender.translation(in: piece.superview)
+        if sender.state == .began {
+           // Retreive the camera's original position
+            self.startX = controls.camera.position.x
+            self.startY = controls.camera.position.y
+            controls.usingCamGesture = true
+        }
+        // Update the position for the .began, .changed, and .ended states
+        if sender.state != .cancelled {
+            // Add the X and Y translation to the view's original position.
+            camera?.position.x = self.startX - translation.x
+            camera?.position.y = self.startY + translation.y
+            controls.camera.position = camera!.position
+            controls.usingCamGesture = false
+       }
+       else {
+            // On cancellation, return the piece to its original location.
+            camera?.position.x = self.startX
+            camera?.position.y = self.startY
+           controls.camera.position = camera!.position
+            controls.usingCamGesture = false
+       }
+    }
+    
+    @objc func screenPanDetected(sender: UIPanGestureRecognizer) {
+        // this code moves the entire view as 3 finger gesture
+        guard sender.view != nil else {return}
+        let piece = sender.view!
+        
+        let translation = sender.translation(in: piece.superview)
+           if sender.state == .began {
+               // Save the view's original position.
+               self.initialCenter = piece.center
+           }
+            // Update the position for the .began, .changed, and .ended states
+           if sender.state != .cancelled {
+              // Add the X and Y translation to the view's original position.
+              let newCenter = CGPoint(x: initialCenter.x + translation.x, y: initialCenter.y + translation.y)
+              piece.center = newCenter
+           }
+           else {
+              // On cancellation, return the piece to its original location.
+              piece.center = initialCenter
+           }
     }
 
     // release
@@ -177,24 +261,10 @@ class GameScene: SKScene {
                     }
                 } else {
                     // pour code
-                    if controls.pourOn  && controls.cameraLocked {
+                    if controls.pourOn {
                         let newNode = renderNode(location: location, hasPhysics: true)
                         addChild(newNode)
-                    } else {
-                        if controls.cameraLocked == false {
-                            // camera code
-                            let location = touch.location(in: self)
-                            let previousLocation = touch.previousLocation(in: self)
-                            
-                            camera?.position.x += location.x - previousLocation.x
-                            camera?.position.y += location.y - previousLocation.y
-                            
-                            // TODO: do I need to store the position of the camera?
-                            
-                        }
-                        
                     }
-                    
                 }
             }
         case .paint:

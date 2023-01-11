@@ -29,6 +29,9 @@
  - Clear all can get stuck, when tapping screen after, clear catches up
  - Clear all removes camera node
  
+ Interface ideas
+ - Round corners of the RGB selector box
+ 
  Feature ideas
  - make all objects physics objects that fall when you clear (fall to infinity)
  - Let user change paint objects into physics objects (make toggle switch for falling ball) - figure.fall.circle, digitalcrown.arrow.counterclockwise.fill
@@ -36,6 +39,8 @@
  - draw edge around border of physics environment
  - Debug window - have listview that shows all nodes along with their properties when selected
  - Zoom in/out on a larger, boundry-defined scene
+    - fix pinch method (it's reversed)
+    - add toggle variable usingCamGesture on/off when those functions start/end
  - Adjust gravity based on tilt of phone
  - Persistance - save state whenever phone is turned
     - Allow user to set number of saves (just rolls and deletes old as new added)
@@ -119,7 +124,8 @@ struct ContentView: View {
         
         // add camera node
         let cameraNode = SKCameraNode()
-        cameraNode.position = CGPoint(x: scene.size.width / 2,
+        // place this at the center bottom of physics view
+        cameraNode.position = CGPoint(x: scene.size.height * controls.physicEnvScale,
                                       y: scene.size.height / 2)
         scene.addChild(cameraNode)
         scene.camera = cameraNode
@@ -130,79 +136,7 @@ struct ContentView: View {
         
         return scene
     }
-    
-    struct CircleMagGestureView: View {
-
-        @GestureState var magnifyBy = 1.0
-
-        var magnification: some Gesture {
-            MagnificationGesture()
-                .updating($magnifyBy) { currentState, gestureState, transaction in
-                    gestureState = currentState
-                }
-        }
-
-        var body: some View {
-            Circle()
-                .frame(width: 100, height: 100)
-                .scaleEffect(magnifyBy)
-                .gesture(magnification)
-        }
-    }
-    
-    struct MagnificationGestureView: View {
-
-        @GestureState var magnifyBy = 1.0
-        
-        var scene: SKScene {
-            // making this square helps with ratio issues when drawing shapes
-            let scene = GameScene()
-            // TODO: make sure dynamic sizing is working properly - not sure if this is used
-//            let maxHeight = controls.screenHeight  // 2532
-//            let maxWidth = controls.screenWidth  // 1170
-            // TODO: create variable with smaller of two screen values to use for resizing
-//            var scalePixels = 1.0  // generic default value
-//            if maxHeight > maxWidth {
-//                scalePixels = maxWidth
-//            } else {
-//                scalePixels = maxHeight
-//            }
-//            controls.scalePixels = scalePixels
-            scene.size = CGSize(width: 391, height: 391)
-            scene.scaleMode = .aspectFit  // .aspectFill // .resizeFill  // .aspectFit
-            scene.view?.showsDrawCount = true
-            
-            // add camera node
-            let cameraNode = SKCameraNode()
-            cameraNode.position = CGPoint(x: scene.size.width / 2,
-                                          y: scene.size.height / 2)
-            scene.addChild(cameraNode)
-            scene.camera = cameraNode
-            
-            // update shared references
-//            controls.gameScene = scene
-//            controls.camera = cameraNode
-            
-            return scene
-        }
-        
-//        var magnification: some Gesture {
-//            MagnificationGesture()
-//                .updating($magnifyBy) { currentState, gestureState, transaction in
-//                    gestureState = currentState
-//                }
-//        }
-
-        
-        var body: some View {
-            SpriteView(scene: scene)
-//                .gesture(magnification)
-//            Circle()
-//                .frame(width: 100, height: 100)
-//                .scaleEffect(magnifyBy)
-//                .gesture(magnification)
-        }
-    }
+   
     
     struct PourToggleStyle: ToggleStyle {
         func makeBody(configuration: Configuration) -> some View {
@@ -304,12 +238,6 @@ struct ContentView: View {
                                     .padding([.horizontal])
                                     .onChange(of: boxWidth, perform: sliderBoxWidthChanged)
                             }
-                            HStack {
-                                Text("C")
-                                Slider(value: $cameraZoom, in: 0.1...1.0, step: 0.05)
-                                    .padding([.horizontal])
-                                    .onChange(of: cameraZoom, perform: sliderCameraZoomChanged)
-                            }
                         }
                         .padding()
                         VStack {
@@ -378,15 +306,12 @@ struct ContentView: View {
                         GeometryReader { geometry in
                             let width = geometry.size.width
 //                            let height = geometry.size.height
-                            
-                            
+
                             // this view contains the physics (will letter box if smaller than view area reserved for physics)
                             // note: width is limited whether it is full frame or not
                             SpriteView(scene: scene)
                                 .frame(width: width)
                                 .onAppear{ self.storeGeometry(for: geometry) }
-//                            CircleMagGestureView()
-//                                .frame(width: width)
                         }
                     }
                     HStack {
@@ -446,14 +371,6 @@ struct ContentView: View {
     
     private func sliderBoxWidthChanged(to newValue: Double) {
         controls.boxWidth = Double(newValue.rounded())
-    }
-    
-    private func sliderCameraZoomChanged(to newValue: Double) {
-        // TODO: this doesn't seem to work
-//        let zoomInAction = SKAction.scale(to: newValue, duration: 1)
-//        let cameraNode = controls.gameScene.camera
-//        cameraNode.run(zoomInAction)
-        controls.cameraZoom = newValue
     }
     
     private func shapeChanged(to newValue: Shape) {
