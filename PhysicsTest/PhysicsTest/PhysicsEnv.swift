@@ -52,10 +52,11 @@ class GameScene: SKScene {
         // initialize physics environment
         // playview will be mulitiplied by screenMultiply
         let screenSizeX = 428.0  // dynamically do this later
-        let physicsSize = screenSizeX * controls.physicEnvScale
+        let physicsSize = screenSizeX * controls.physicsEnvScale
         let cameraOrigin = CGPoint(x: 0, y: 0)  // x was (physicsSize / 2)
         controls.cameraOrigin = cameraOrigin
         let physicsZone = CGRect(origin: cameraOrigin, size: CGSize(width: physicsSize, height: physicsSize))
+        // TODO: figure out how to put an outline around edgeLoop
         physicsBody = SKPhysicsBody(edgeLoopFrom: physicsZone)
         
 //        let swipeRight = UISwipeGestureRecognizer(target: self,
@@ -203,7 +204,7 @@ class GameScene: SKScene {
                 } else {
                     // drop new one if paint node selected (can't move paint nodes)
                     print("You are selecting a paint node and need to drop instead")
-                    if controls.drop && !controls.removeOn {
+                    if controls.drop && !controls.removeOn && controls.usingCamGesture == false {
                         let newNode = renderNode(location: location, hasPhysics: true)
                         addChild(newNode)
 //                        controls.drop = true
@@ -211,7 +212,7 @@ class GameScene: SKScene {
                 }
             } else {
                 // if no non-paint nodes are touched, then add new one
-                if controls.drop && !controls.removeOn {
+                if controls.drop && !controls.removeOn && controls.usingCamGesture == false {
                     let newNode = renderNode(location: location, hasPhysics: true)
                     addChild(newNode)
 //                    controls.drop = true
@@ -261,17 +262,19 @@ class GameScene: SKScene {
                     }
                 } else {
                     // pour code
-                    if controls.pourOn {
+                    if controls.pourOn && controls.usingCamGesture == false {
                         let newNode = renderNode(location: location, hasPhysics: true)
                         addChild(newNode)
                     }
                 }
             }
         case .paint:
-            for touch in touches {
-                let location = touch.location(in: self)
-                let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5)
-                addChild(newNode)
+            if (controls.usingCamGesture == false) {
+                for touch in touches {
+                    let location = touch.location(in: self)
+                    let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5)
+                    addChild(newNode)
+                }
             }
         }
         // this is needed to keep track of all children objects (shape nodes)
@@ -283,6 +286,8 @@ class GameScene: SKScene {
         
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
+        
+        backgroundColor = UIColor(red: abs(controls.r - 1.0), green: abs(controls.g - 1.0), blue: abs(controls.b - 1.0), alpha: 0.5)
    
 //        print(touches.count)
         switch controls.addMethod {
@@ -334,7 +339,7 @@ class GameScene: SKScene {
                     controls.selectedNode = selectedNode
                     controls.selectedNode.removeFromParent()
                 }
-            } else {  // add paint node
+            } else if controls.usingCamGesture == false {  // add paint node
                 let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5)
                 addChild(newNode)
             }

@@ -35,7 +35,8 @@ class UIJoin: ObservableObject {
     @Published var cameraScale = 1.0
     @Published var usingCamGesture = false  // used to prevent shape drops, etc
     @Published var cameraOrigin = CGPoint(x: 0.0, y: 0.0)
-    @Published var physicEnvScale = 8.0  // this is multiplied by screen size
+    @Published var physicsEnvScale = 8.0  // this is multiplied by screen size
+//    @Published var physicsEnvRect: CGRect()
     
     // TODO: capture state of entire scene - not codable, deconstruct
     @Published var gameScene = SKScene()

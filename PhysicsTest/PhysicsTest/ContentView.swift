@@ -22,6 +22,7 @@
         - add paint mode switch
  
  Bugs
+ - pan gesture - with pour on weird things happen
  - Adding a node can happen sometimes when dragging one (it appears watching others)
  - Drag method that checks for background layer makes drag very jittery, sometimes objects drop and return to mouse
  - Pour method does not work when there is a background node where touch starts
@@ -30,17 +31,19 @@
  - Clear all removes camera node
  
  Interface ideas
- - Round corners of the RGB selector box
+ - anything delightful
+ 
+ Code ideas
+ - Look at changing from a shared control object to some kind of delegate model
  
  Feature ideas
+ - figure out how to put an outline around edgeLoop
+ - ml paint - once you can save scenes, make images for each one and have ml generate new background scenes for user in their "style"
  - make all objects physics objects that fall when you clear (fall to infinity)
  - Let user change paint objects into physics objects (make toggle switch for falling ball) - figure.fall.circle, digitalcrown.arrow.counterclockwise.fill
  - add option to shade objects and show they are rotating
  - draw edge around border of physics environment
  - Debug window - have listview that shows all nodes along with their properties when selected
- - Zoom in/out on a larger, boundry-defined scene
-    - fix pinch method (it's reversed)
-    - add toggle variable usingCamGesture on/off when those functions start/end
  - Adjust gravity based on tilt of phone
  - Persistance - save state whenever phone is turned
     - Allow user to set number of saves (just rolls and deletes old as new added)
@@ -120,12 +123,13 @@ struct ContentView: View {
         scene.size = CGSize(width: scalePixels, height: scalePixels)
         scene.scaleMode = .aspectFit  // .aspectFill // .resizeFill  // .aspectFit
         scene.view?.showsDrawCount = true
-        
+        // making complementary color of chosen object color
+        scene.backgroundColor = UIColor(red: abs(r - 1.0), green: abs(g - 1.0), blue: abs(b - 1.0), alpha: 0.5)
         
         // add camera node
         let cameraNode = SKCameraNode()
         // place this at the center bottom of physics view
-        cameraNode.position = CGPoint(x: scene.size.height * controls.physicEnvScale,
+        cameraNode.position = CGPoint(x: scene.size.height * controls.physicsEnvScale,
                                       y: scene.size.height / 2)
         scene.addChild(cameraNode)
         scene.camera = cameraNode
@@ -228,12 +232,14 @@ struct ContentView: View {
                             
                             HStack {
                                 Text("H")
+                                    .foregroundColor(Color(red: r, green: g, blue: b))
                                 Slider(value: $boxHeight, in: 1...100, step: 1)
                                     .padding([.horizontal])
                                     .onChange(of: boxHeight, perform: sliderBoxHeightChanged)
                             }
                             HStack {
                                 Text("W")
+                                    .foregroundColor(Color(red: r, green: g, blue: b))
                                 Slider(value: $boxWidth, in: 1...100, step: 1)
                                     .padding([.horizontal])
                                     .onChange(of: boxWidth, perform: sliderBoxWidthChanged)
@@ -245,18 +251,21 @@ struct ContentView: View {
                                 // TODO: see if you can caculate complimentary color to current and adjust RGB text to match
                                 HStack {
                                     Text("R")
+                                        .foregroundColor(Color(red: (r - 0.5), green: (g - 0.5), blue: (b - 0.5), opacity: r))
                                     Slider(value: $r, in: 0...1, step: 0.01)
                                         .padding([.horizontal])
                                         .onChange(of: r, perform: sliderColorRChanged)
                                 }
                                 HStack {
                                     Text("G")
+                                        .foregroundColor(Color(red: r - 0.5, green: g - 0.5, blue: b - 0.5, opacity: g))
                                     Slider(value: $g, in: 0...1, step: 0.01)
                                         .padding([.horizontal])
                                         .onChange(of: g, perform: sliderColorGChanged)
                                 }
                                 HStack {
                                     Text("B")
+                                        .foregroundColor(Color(red: r - 0.5, green: g - 0.5, blue: b - 0.5, opacity: b))
                                     Slider(value: $b, in: 0...1, step: 0.01)
                                         .padding([.horizontal])
                                         .onChange(of: b, perform: sliderColorBChanged)
@@ -265,6 +274,7 @@ struct ContentView: View {
                             }
                             .padding()
                             .background(Color(red: r, green: g, blue: b))  // gives preview of chosen color
+                            .cornerRadius(20)
                         }
                         .padding()
                     }
@@ -317,6 +327,7 @@ struct ContentView: View {
                     HStack {
                         HStack {
                             Text("Density")
+                                .foregroundColor(Color(red: r, green: g, blue: b))
                             Slider(value: $density, in: 0...10, step: 1.0)
                                 .padding([.horizontal])
                                 .onChange(of: Float(density), perform: sliderDensityChanged)
@@ -324,6 +335,7 @@ struct ContentView: View {
                         .padding()
                         HStack {
                             Text("L Damp")
+                                .foregroundColor(Color(red: r, green: g, blue: b))
                             Slider(value: $linearDamping, in: 0...1, step: 0.1)
                                 .padding([.horizontal])
                                 .onChange(of: Float(linearDamping), perform: sliderLinearDampingChanged)
@@ -345,6 +357,7 @@ struct ContentView: View {
                     
                 }
             }
+            .background(Color(red: r, green: g, blue: b, opacity: 0.25))
         }
     }
     
