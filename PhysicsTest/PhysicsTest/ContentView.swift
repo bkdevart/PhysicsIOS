@@ -15,7 +15,7 @@
     - make user-defined shapes
  - Interaction
     - have mode that pauses physics/other interactions and allows you to place items locked in place
-    - combine drag and pour methods into dynamic action
+    - (other mode) combine drag and pour methods into dynamic action
         - if tapping a node, go into drag mode
         - if not tapping a node, go into drop/pour mode based on if tap or drag motion
         - have toggle mode for clearing nodes (on/off switch)
@@ -27,9 +27,20 @@
  - Pour method does not work when there is a background node where touch starts
  - Rectangle height not working when clear & static, physics not applying at one point
  - Clear all can get stuck, when tapping screen after, clear catches up
+ - Clear all removes camera node
+ 
+ Interface ideas
+ - Round corners of the RGB selector box
  
  Feature ideas
+ - make all objects physics objects that fall when you clear (fall to infinity)
+ - Let user change paint objects into physics objects (make toggle switch for falling ball) - figure.fall.circle, digitalcrown.arrow.counterclockwise.fill
+ - add option to shade objects and show they are rotating
+ - draw edge around border of physics environment
+ - Debug window - have listview that shows all nodes along with their properties when selected
  - Zoom in/out on a larger, boundry-defined scene
+    - fix pinch method (it's reversed)
+    - add toggle variable usingCamGesture on/off when those functions start/end
  - Adjust gravity based on tilt of phone
  - Persistance - save state whenever phone is turned
     - Allow user to set number of saves (just rolls and deletes old as new added)
@@ -38,10 +49,13 @@
  - make new view, use pop up menu to put all controls in to free up screen
  
  Game ideas
+ - Quantum wall
  - Wrecking ball
  - Obstacle navigation
  - Boom blox
  - Gravity (simulate planets)
+ - Different modes (sassy mode tells you things that are misleading like it erased when it saved, etc)
+
  */
 
 import SwiftUI
@@ -59,10 +73,10 @@ enum AddMethod: String, CaseIterable, Identifiable {
 }
 
 
-
 struct ContentView: View {
+    @Environment(\.colorScheme) var currentMode
     // default box/color values - these are initialized in UIJoin (may not need values?)
-    // TODO: these values are synced with default values in UIJoin - make one?
+    // TODO: these values are synced with default values in UIJoin - make all in one place?
     // value may be needed at start (based on how initialization is handled)
     // Cannot use instance member 'controls' within property initializer; property initializers run before 'self' is available
     @State private var boxHeight = 6.0
@@ -78,22 +92,16 @@ struct ContentView: View {
     
     // using this to track box size and color selection as it changes
     let controls = UIJoin.shared
-    
-    /*
-     May have to read https://github.com/joshuajhomann/SwiftUI-Spirograph to get combine to work with geometry reader to get proper scene.size set (hardcoded to iPhone 13 pro right now)
-     */
 
     // houses shape picker selection
     @State private var selectedShape: Shape = .rectangle
     @State private var addMethod: AddMethod = .add
     @State public var removeOn = false
     @State public var pourOn = false
+    @State public var cameraLocked = true
+    @State public var cameraZoom = 1.0
+    @GestureState var magnifyBy = 1.0
 
-    
-    // TODO:  override the scene’s didChangeSize(_:) method, which is called whenever the scene changes size. When this method is called, you should update the scene’s contents to match the new size.
-//    override func didChangeSize(_:) {
-//
-//    }
     
     var scene: SKScene {
         // making this square helps with ratio issues when drawing shapes
@@ -113,9 +121,11 @@ struct ContentView: View {
         scene.scaleMode = .aspectFit  // .aspectFill // .resizeFill  // .aspectFit
         scene.view?.showsDrawCount = true
         
+        
         // add camera node
         let cameraNode = SKCameraNode()
-        cameraNode.position = CGPoint(x: scene.size.width / 2,
+        // place this at the center bottom of physics view
+        cameraNode.position = CGPoint(x: scene.size.height * controls.physicEnvScale,
                                       y: scene.size.height / 2)
         scene.addChild(cameraNode)
         scene.camera = cameraNode
@@ -123,20 +133,89 @@ struct ContentView: View {
         // update shared references
         controls.gameScene = scene
         controls.camera = cameraNode
+        
         return scene
     }
+   
     
+    struct PourToggleStyle: ToggleStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            HStack {
+                Button(action: {
+                    configuration.isOn.toggle()
+                }, label: {
+                    Image(systemName: configuration.isOn ?
+                            "drop.fill" : "drop")
+                        .renderingMode(.template)
+//                        .foregroundColor(configuration.isOn ? .cyan : .black)
+                        .font(.system(size: 50))
+                })
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+    }
+    
+    struct StaticToggleStyle: ToggleStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            HStack {
+                Button(action: {
+                    configuration.isOn.toggle()
+                }, label: {
+                    Image(systemName: configuration.isOn ?
+                          "hand.raised.brakesignal": "brakesignal")
+                        .renderingMode(.template)
+                        .font(.system(size: 50))
+                })
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+    }
+    
+    struct ClearToggleStyle: ToggleStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            HStack {
+                Button(action: {
+                    configuration.isOn.toggle()
+                }, label: {
+                    Image(systemName: configuration.isOn ?
+                          "eraser.fill": "eraser")
+                        .renderingMode(.template)
+                        // this is a workaround to keep the window from resizing and clearing sprite objects
+                        .font(configuration.isOn ? .system(size: 50) : .system(size: 49))
+                })
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+    }
+    
+    // this works opposite due to variable being set to false by default
+    struct CameraToggleStyle: ToggleStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            HStack {
+                Button(action: {
+                    configuration.isOn.toggle()
+                }, label: {
+                    Image(systemName: configuration.isOn ?
+                          "video" : "arrow.up.right.video")
+                        .renderingMode(.template)
+                        .font(.system(size: 50))
+                })
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+    }
 
     var body: some View {
+        
+//        @State var cameraZoom = 1.0
 
-            
+
+        
         NavigationView {
             Group {
                 VStack {
                     // TODO: find a way to use Geometry Reader to dynamically fit and keep correct ratio for boxes
                     // LayoutAndGeometry from 100 days of swiftui could be helpful
-                    
-                    
                     HStack {
                         VStack {
                             Picker("Shape", selection: $selectedShape) {
@@ -145,7 +224,8 @@ struct ContentView: View {
                                 Text("Triangle").tag(Shape.triangle)
                             }
                             .onChange(of: selectedShape, perform: shapeChanged)
-                            Text("\(selectedShape.rawValue) size")
+//                            Text("\(selectedShape.rawValue) size")
+                            
                             HStack {
                                 Text("H")
                                 Slider(value: $boxHeight, in: 1...100, step: 1)
@@ -161,7 +241,6 @@ struct ContentView: View {
                         }
                         .padding()
                         VStack {
-                            Text("Color")
                             VStack {
                                 // TODO: see if you can caculate complimentary color to current and adjust RGB text to match
                                 HStack {
@@ -190,24 +269,51 @@ struct ContentView: View {
                         .padding()
                     }
                     HStack {
+                        Toggle("Clear", isOn: $removeOn)
+                            .onChange(of: removeOn) { newValue in
+                                controls.removeOn = removeOn
+                            }
+                            .toggleStyle(ClearToggleStyle())
+                            .foregroundColor(Color(red: r, green: g, blue: b))
+                        Toggle("Static", isOn: $staticNode)
+                            .onChange(of: staticNode) { newValue in
+                                controls.staticNode = staticNode
+                            }
+                            .toggleStyle(StaticToggleStyle())
+                            .foregroundColor(Color(red: r, green: g, blue: b))
+                        Toggle("Pour", isOn: $pourOn)
+                            .toggleStyle(PourToggleStyle())
+                            .foregroundColor(Color(red: r, green: g, blue: b))
+                            .onChange(of: pourOn) { newValue in
+                                controls.pourOn = pourOn
+                            }
+                        // && currentMode == .light
+                        Toggle("Camera Lock", isOn: $cameraLocked)
+                            .toggleStyle(CameraToggleStyle())
+                            .foregroundColor(Color(red: r, green: g, blue: b))
+                            .onChange(of: cameraLocked) { newValue in
+                                controls.cameraLocked = cameraLocked
+                            }
+                        // choose how to add/remove shapes to the physics environment
+                        Picker("AddMethod", selection: $addMethod) {
+                            Text("Add").tag(AddMethod.add)
+                            Text("Paint").tag(AddMethod.paint)
+                        }
+                        .onChange(of: addMethod, perform: addMethodChanged)
+                    }
+                    .padding([.bottom, .top], 2)
+                    HStack {
                         GeometryReader { geometry in
                             let width = geometry.size.width
-                            let height = geometry.size.height
-                            
+//                            let height = geometry.size.height
+
                             // this view contains the physics (will letter box if smaller than view area reserved for physics)
                             // note: width is limited whether it is full frame or not
                             SpriteView(scene: scene)
                                 .frame(width: width)
-//                                .ignoresSafeArea()
                                 .onAppear{ self.storeGeometry(for: geometry) }
                         }
                     }
-                    // choose how to add/remove shapes to the physics environment
-                    Picker("AddMethod", selection: $addMethod) {
-                        Text("Add").tag(AddMethod.add)
-                        Text("Paint").tag(AddMethod.paint)
-                    }
-                    .onChange(of: addMethod, perform: addMethodChanged)
                     HStack {
                         HStack {
                             Text("Density")
@@ -224,25 +330,8 @@ struct ContentView: View {
                         }
                         .padding()
                     }
-                    HStack {
-                        VStack {
-                            Toggle("Clear", isOn: $removeOn)
-                                .onChange(of: removeOn) { newValue in
-                                    controls.removeOn = removeOn
-                                }
-                                .padding()
-                        }
-                        Toggle("Static", isOn: $staticNode)
-                            .onChange(of: staticNode) { newValue in
-                                controls.staticNode = staticNode
-                            }
-                            .padding()
-                        Toggle("Pour", isOn: $pourOn)
-                            .onChange(of: pourOn) { newValue in
-                                controls.pourOn = pourOn
-                            }
-                            .padding()
-                    }
+                    
+
                     HStack {
                         // shows different information here (user color settings, size settings)
                         Spacer()

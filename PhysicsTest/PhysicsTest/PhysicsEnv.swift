@@ -12,6 +12,12 @@ import Foundation
 class GameScene: SKScene {
     @ObservedObject var controls = UIJoin.shared
     
+    // vars used for camera gestures
+    var initialCenter = CGPoint()
+    var startX = CGFloat()
+    var startY = CGFloat()
+    var cameraScale = CGFloat()
+    
     
     // TODO: create object to store physics environment state
 //    struct physicEnvStruct: Codable, Identifiable {
@@ -21,22 +27,153 @@ class GameScene: SKScene {
 //        var physicScene: SpriteView
 //    }
     
+//    override func didMove(to view: SKView) {
+//
+//    }
+//
+
+    
+    // TODO:  override the scene’s didChangeSize(_:) method, which is called whenever the scene changes size. When this method is called, you should update the scene’s contents to match the new size.
+    override func didChangeSize(_ oldSize: CGSize) {
+        // a number here to track (useful for debug for now)
+        controls.screenSizeChangeCount += 1
+        print("Screen changed \(controls.screenSizeChangeCount) times!")
+        print("New size:\(size)")
+    }
+    
+//    var previousCameraScale = CGFloat()
+    
+    override func sceneDidLoad() {
+
+    }
+    
     // when the scene is presented by the view, didMove activates and triggers the physics engine environment
     override func didMove(to view: SKView) {
-        // TODO: play with this (and allow user to)
-        physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
+        // initialize physics environment
+        // playview will be mulitiplied by screenMultiply
+        let screenSizeX = 428.0  // dynamically do this later
+        let physicsSize = screenSizeX * controls.physicEnvScale
+        let cameraOrigin = CGPoint(x: 0, y: 0)  // x was (physicsSize / 2)
+        controls.cameraOrigin = cameraOrigin
+        let physicsZone = CGRect(origin: cameraOrigin, size: CGSize(width: physicsSize, height: physicsSize))
+        physicsBody = SKPhysicsBody(edgeLoopFrom: physicsZone)
+        
+//        let swipeRight = UISwipeGestureRecognizer(target: self,
+//            action: #selector(GameScene.swipeRight(sender:)))
+//        swipeRight.direction = .right
+//        view.addGestureRecognizer(swipeRight)
+        
+        // adding pinch recgonizer for camera zoom
+        let pinch = UIPinchGestureRecognizer(target: self, action: #selector(GameScene.pinchDetected(sender:)))
+        view.addGestureRecognizer(pinch)
+        
+        // adding camera PanGestureRecognizer
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(GameScene.panDetected(sender:)))
+        pan.minimumNumberOfTouches = 2
+        pan.maximumNumberOfTouches = 2
+        view.addGestureRecognizer(pan)
+        
+        // adding hidden 3 finger pan that moves scene on screen
+        let moveScreen = UIPanGestureRecognizer(target: self, action: #selector(GameScene.screenPanDetected(sender:)))
+        moveScreen.minimumNumberOfTouches = 3
+        moveScreen.maximumNumberOfTouches = 3
+        view.addGestureRecognizer(moveScreen)
+    }
+    
+    // not using this, keeping in case a use appears
+//    @objc func swipeRight(sender: UISwipeGestureRecognizer) {
+//        // Handle the swipe
+//        print("Swiped right!")
+//    }
+    
+    @objc func pinchDetected(sender: UIPinchGestureRecognizer) {
+        // handle the pinch using scale value
+        guard camera != nil else {return}
+
+        if sender.state == .began {
+            // if controls aren't updated, view will snap back to old position
+            cameraScale = controls.camera.xScale
+            controls.usingCamGesture = true
+        }
+        // Update the position for the .began, .changed, and .ended states
+        if sender.state != .cancelled {
+            // Add the X and Y translation to the view's original position.
+            let newScale = cameraScale * 1 / sender.scale
+            camera?.setScale(newScale)
+            controls.camera.xScale = newScale
+            controls.usingCamGesture = false
+       }
+       else {
+            // On cancellation, return the piece to its original location.
+           camera?.setScale(cameraScale)
+            controls.usingCamGesture = false
+       }
+    }
+    
+    // https://developer.apple.com/documentation/uikit/touches_presses_and_gestures/handling_uikit_gestures/handling_pan_gestures
+    @objc func panDetected(sender: UIPanGestureRecognizer) {
+        // handle the camera pan
+        guard sender.view != nil else {return}
+        guard camera != nil else {return}
+        let piece = sender.view!
+        
+        let translation = sender.translation(in: piece.superview)
+        if sender.state == .began {
+           // Retreive the camera's original position
+            self.startX = controls.camera.position.x
+            self.startY = controls.camera.position.y
+            controls.usingCamGesture = true
+        }
+        // Update the position for the .began, .changed, and .ended states
+        if sender.state != .cancelled {
+            // Add the X and Y translation to the view's original position.
+            camera?.position.x = self.startX - translation.x
+            camera?.position.y = self.startY + translation.y
+            controls.camera.position = camera!.position
+            controls.usingCamGesture = false
+       }
+       else {
+            // On cancellation, return the piece to its original location.
+            camera?.position.x = self.startX
+            camera?.position.y = self.startY
+           controls.camera.position = camera!.position
+            controls.usingCamGesture = false
+       }
+    }
+    
+    @objc func screenPanDetected(sender: UIPanGestureRecognizer) {
+        // this code moves the entire view as 3 finger gesture
+        guard sender.view != nil else {return}
+        let piece = sender.view!
+        
+        let translation = sender.translation(in: piece.superview)
+           if sender.state == .began {
+               // Save the view's original position.
+               self.initialCenter = piece.center
+           }
+            // Update the position for the .began, .changed, and .ended states
+           if sender.state != .cancelled {
+              // Add the X and Y translation to the view's original position.
+              let newCenter = CGPoint(x: initialCenter.x + translation.x, y: initialCenter.y + translation.y)
+              piece.center = newCenter
+           }
+           else {
+              // On cancellation, return the piece to its original location.
+              piece.center = initialCenter
+           }
     }
 
     // release
-//    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-//        // TODO: use this to release object (instead of start of touch event)
-//        guard let touch = touches.first else { return }
-//        let location = touch.location(in: self)
-//
-//        switch controls.addMethod {
-//        case .clear:
-//            // select node and delete only that one
-//            let touchedNodes = nodes(at: location)
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // using this to release physics objects (instead of start of touch event)
+        guard let touch = touches.first else { return }
+        let location = touch.location(in: self)
+
+        switch controls.addMethod {
+        // TODO: clear doesn't exist in dropdown currently, so this is arbitrary code
+        case .clear:
+            // select node and delete only that one
+            let touchedNodes = nodes(at: location)
 //            controls.selectedNodes = touchedNodes
 //            // will crash here if no nodes are touched
 //            if touchedNodes.count > 0 {
@@ -46,33 +183,45 @@ class GameScene: SKScene {
 //                controls.selectedNode = SKNode()
 //            }
 //            controls.selectedNode.removeFromParent()
-//        case .add:
-//            let touchedNodes = nodes(at: location)
-//            controls.selectedNodes = touchedNodes
-//            // will crash here if no nodes are touched
-//            if touchedNodes.count > 0 {
-//                // check if selectedNode is paint node
-//                if touchedNodes[0].zPosition != -5 {
-//                    // log node so that drag motion works
-//                    controls.selectedNode = touchedNodes[0]
-//                    // if removeOn is set, clear node
-//                    if controls.removeOn {
-//                        controls.selectedNode.removeFromParent()
-//                    }
-//                } else {
-//                    // drop new one if paint node selected (can't move paint nodes)
-//                    print("You are selecting a paint node and need to drop instead")
-//                    let newNode = renderNode(location: location, hasPhysics: true)
-//                    addChild(newNode)
-//                }
-//            } else {
-//                // if no non-paint nodes are touched, then add new one
-//                let newNode = renderNode(location: location, hasPhysics: true)
-//                addChild(newNode)
-//            }
-//        case .paint:
-//            // remove paint
-//            let touchedNodes = nodes(at: location)
+        case .add:
+            let touchedNodes = nodes(at: location)
+            controls.selectedNodes = touchedNodes
+            // will crash here if no nodes are touched
+            if touchedNodes.count > 0 {
+                // check if selectedNode is paint node
+                if touchedNodes[0].zPosition != -5 {
+                    // log node so that drag motion works
+                    controls.selectedNode = touchedNodes[0]
+                    // turn drop switch off
+                    controls.drop = false
+                    // if removeOn is set, clear node
+                    if controls.removeOn {
+                        // TODO: see which conditions this runs (breakpoint doesn't always trigger when toggling, clicking)
+                        print(controls.selectedNode)
+                        controls.selectedNode.removeFromParent()
+                    }
+                } else {
+                    // drop new one if paint node selected (can't move paint nodes)
+                    print("You are selecting a paint node and need to drop instead")
+                    if controls.drop && !controls.removeOn {
+                        let newNode = renderNode(location: location, hasPhysics: true)
+                        addChild(newNode)
+//                        controls.drop = true
+                    }
+                }
+            } else {
+                // if no non-paint nodes are touched, then add new one
+                if controls.drop && !controls.removeOn {
+                    let newNode = renderNode(location: location, hasPhysics: true)
+                    addChild(newNode)
+//                    controls.drop = true
+                }
+                controls.drop = true
+            }
+            
+        case .paint:
+            // remove paint
+            let touchedNodes = nodes(at: location)
             
 //            if touchedNodes.count > 0 {
 //                let selectedNode = touchedNodes[0]
@@ -85,10 +234,10 @@ class GameScene: SKScene {
 //                let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5)
 //                addChild(newNode)
 //            }
-//        }
+        }
         // this is needed to keep track of all children objects (shape nodes)
-//        controls.gameScene = self
-//    }
+        controls.gameScene = self
+    }
     
     // drag
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -96,8 +245,6 @@ class GameScene: SKScene {
         case .clear:
             print("Will think about this clear method dragging finger")
         case .add:
-            // TODO: check to see if there is only one touch for one finger, etc
-            print(touches.count)
             for touch in touches {
                 let location = touch.location(in: self)
                 // do drag code
@@ -106,6 +253,7 @@ class GameScene: SKScene {
                     if controls.selectedNode.zPosition != -5 {
                         // move with finger/mouse
                         controls.selectedNode.position = location
+                        controls.drop = false
                     } else {
                         // do you need to drop on drag like this?
 //                        let newNode = renderNode(location: location, hasPhysics: true)
@@ -117,25 +265,6 @@ class GameScene: SKScene {
                         let newNode = renderNode(location: location, hasPhysics: true)
                         addChild(newNode)
                     }
-                    
-                    // TODO: create camera code
-                    // store current camera position before moving on
-                    let originalCam = controls.camera.position  //camera.position
-                    let center = view!.center
-//                    controls.camera.position = center
-                    let xDist = location.x - center.x
-                    let yDist = location.y - center.y
-                    let distance = sqrt((xDist * xDist) + (yDist * yDist)) * 0.02
-                    let xPos = xDist * distance * 0.08
-                    let yPos = yDist * distance * 0.08
-                    // TODO: disabling until stable
-//                    camera?.position.x = -xPos  // was +=
-//                    camera?.position.y = -yPos  // was -=
-//
-//                    // force unwrap here assumes the camera was created in view
-//                    print("\(camera?.position.x), \(camera?.position.y)")
-//                    controls.camera = camera!
-//                    controls.gameScene.camera?.position = (location)
                 }
             }
         case .paint:
@@ -155,7 +284,7 @@ class GameScene: SKScene {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
    
-        print(touches.count)
+//        print(touches.count)
         switch controls.addMethod {
         case .clear:
             // select node and delete only that one
@@ -170,7 +299,7 @@ class GameScene: SKScene {
             }
             controls.selectedNode.removeFromParent()
         case .add:
-            print("Add chosen")
+            // TODO: see what you neeed to keep from this code after implementing drop (touchesEnded)
             let touchedNodes = nodes(at: location)
             controls.selectedNodes = touchedNodes
             // will crash here if no nodes are touched
@@ -183,16 +312,16 @@ class GameScene: SKScene {
                     if controls.removeOn {
                         controls.selectedNode.removeFromParent()
                     }
-                } else {
-                    // drop new one if paint node selected (can't move paint nodes)
-                    print("You are selecting a paint node and need to drop instead")
-                    let newNode = renderNode(location: location, hasPhysics: true)
-                    addChild(newNode)
-                }
             } else {
-                // if no non-paint nodes are touched, then add new one
-                let newNode = renderNode(location: location, hasPhysics: true)
-                addChild(newNode)
+//                    // drop new one if paint node selected (can't move paint nodes)
+//                    print("You are selecting a paint node and need to drop instead")
+//                    let newNode = renderNode(location: location, hasPhysics: true)
+//                    addChild(newNode)
+            }
+//            } else {
+//                // if no non-paint nodes are touched, then add new one
+//                let newNode = renderNode(location: location, hasPhysics: true)
+//                addChild(newNode)
             }
         case .paint:
             // remove paint

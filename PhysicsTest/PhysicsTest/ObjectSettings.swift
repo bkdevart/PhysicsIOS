@@ -29,6 +29,13 @@ class UIJoin: ObservableObject {
     @Published var staticNode = false
     @Published var linearDamping = 0.1
     @Published var scalePixels = 1.0  // generic default value
+    @Published var drop = true
+    @Published var screenSizeChangeCount = 0  // counts times screen is resized during run
+    @Published var cameraLocked = true
+    @Published var cameraScale = 1.0
+    @Published var usingCamGesture = false  // used to prevent shape drops, etc
+    @Published var cameraOrigin = CGPoint(x: 0.0, y: 0.0)
+    @Published var physicEnvScale = 8.0  // this is multiplied by screen size
     
     // TODO: capture state of entire scene - not codable, deconstruct
     @Published var gameScene = SKScene()
@@ -40,7 +47,7 @@ class UIJoin: ObservableObject {
     static var shared = UIJoin()
 }
 
-// TODO: add density and mass(?) to this
+// TODO: add mass and other features to this
 func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) -> SKNode {
 //        let location = touch.location(in: self)
     @ObservedObject var controls = UIJoin.shared
@@ -68,6 +75,7 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) -> 
         box.position = location
         box.zPosition = CGFloat(zPosition)
         if hasPhysics {
+            // TODO: new magnify view causing issues here
             box.physicsBody = SKPhysicsBody(polygonFrom: path)
             // default density value is 1.0, anything higher is relative to this
             box.physicsBody?.density = controls.density
