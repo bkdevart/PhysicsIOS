@@ -21,6 +21,12 @@ class GameScene: SKScene {
 //        var physicScene: SpriteView
 //    }
     
+//    override func didMove(to view: SKView) {
+//
+//    }
+//
+
+    
     // TODO:  override the scene’s didChangeSize(_:) method, which is called whenever the scene changes size. When this method is called, you should update the scene’s contents to match the new size.
     override func didChangeSize(_ oldSize: CGSize) {
         // a number here to track (useful for debug for now)
@@ -50,8 +56,27 @@ class GameScene: SKScene {
     
     // when the scene is presented by the view, didMove activates and triggers the physics engine environment
     override func didMove(to view: SKView) {
-        // TODO: play with this (and allow user to)
+        // play with physicsbody properties (and allow user to)
         physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
+        let swipeRight = UISwipeGestureRecognizer(target: self,
+            action: #selector(GameScene.swipeRight(sender:)))
+        swipeRight.direction = .right
+        view.addGestureRecognizer(swipeRight)
+        
+        // adding pinch recgonizer for camera zoom
+        let pinch = UIPinchGestureRecognizer(target: self, action: #selector(GameScene.pinchDetected(sender:)))
+        view.addGestureRecognizer(pinch)
+    }
+    
+    @objc func swipeRight(sender: UISwipeGestureRecognizer) {
+        // Handle the swipe
+        print("Swiped!")
+    }
+    
+    @objc func pinchDetected(sender: UISwipeGestureRecognizer) {
+        // Handle the swipe
+        print("Pinched!")
+        // TODO: figure out how to grab scale for camera zoom
     }
 
     // release

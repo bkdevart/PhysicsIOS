@@ -96,13 +96,7 @@ struct ContentView: View {
     @State public var cameraLocked = true
     @State public var cameraZoom = 1.0
     @GestureState var magnifyBy = 1.0
-    
-    var magnification: some Gesture {
-        MagnificationGesture()
-            .updating($magnifyBy) { currentState, gestureState, transaction in
-                gestureState = currentState
-            }
-    }
+
     
     var scene: SKScene {
         // making this square helps with ratio issues when drawing shapes
@@ -122,26 +116,6 @@ struct ContentView: View {
         scene.scaleMode = .aspectFit  // .aspectFill // .resizeFill  // .aspectFit
         scene.view?.showsDrawCount = true
         
-        // pinc to zoom gesture code
-//        var previousCameraScale = CGFloat()
-        
-//        override func sceneDidLoad() {
-//            let pinchGesture = UIPinchGestureRecognizer()
-//            pinchGesture.addTarget(self, action: #selector(pinchGestureAction(_:)))
-//            view?.addGestureRecognizer(pinchGesture)
-//        }
-//        
-//        @objc func pinchGestureAction(_ sender: UIPinchGestureRecognizer) {
-//            guard let camera = self.camera else {
-//                return
-//            }
-//            if sender.state == .began {
-//                previousCameraScale = camera.xScale
-//            }
-//            camera.setScale(previousCameraScale * 1 / sender.scale)
-//        }
-        
-        
         
         // add camera node
         let cameraNode = SKCameraNode()
@@ -157,10 +131,29 @@ struct ContentView: View {
         return scene
     }
     
-    struct MagnificationGestureView: View {
+    struct CircleMagGestureView: View {
 
         @GestureState var magnifyBy = 1.0
 
+        var magnification: some Gesture {
+            MagnificationGesture()
+                .updating($magnifyBy) { currentState, gestureState, transaction in
+                    gestureState = currentState
+                }
+        }
+
+        var body: some View {
+            Circle()
+                .frame(width: 100, height: 100)
+                .scaleEffect(magnifyBy)
+                .gesture(magnification)
+        }
+    }
+    
+    struct MagnificationGestureView: View {
+
+        @GestureState var magnifyBy = 1.0
+        
         var scene: SKScene {
             // making this square helps with ratio issues when drawing shapes
             let scene = GameScene()
@@ -193,18 +186,17 @@ struct ContentView: View {
             return scene
         }
         
-        var magnification: some Gesture {
-            MagnificationGesture()
-                .updating($magnifyBy) { currentState, gestureState, transaction in
-                    gestureState = currentState
-                }
-        }
-
+//        var magnification: some Gesture {
+//            MagnificationGesture()
+//                .updating($magnifyBy) { currentState, gestureState, transaction in
+//                    gestureState = currentState
+//                }
+//        }
 
         
         var body: some View {
             SpriteView(scene: scene)
-                .gesture(magnification)
+//                .gesture(magnification)
 //            Circle()
 //                .frame(width: 100, height: 100)
 //                .scaleEffect(magnifyBy)
@@ -390,13 +382,11 @@ struct ContentView: View {
                             
                             // this view contains the physics (will letter box if smaller than view area reserved for physics)
                             // note: width is limited whether it is full frame or not
-//                            SpriteView(scene: scene)
+                            SpriteView(scene: scene)
+                                .frame(width: width)
+                                .onAppear{ self.storeGeometry(for: geometry) }
+//                            CircleMagGestureView()
 //                                .frame(width: width)
-////                                .gesture(magnification)
-////                                .ignoresSafeArea()
-//                                .onAppear{ self.storeGeometry(for: geometry) }
-                            MagnificationGestureView()
-//                                .onAppear{ self.storeGeometry(for: geometry)
                         }
                     }
                     HStack {

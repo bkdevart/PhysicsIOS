@@ -72,6 +72,7 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) -> 
         box.position = location
         box.zPosition = CGFloat(zPosition)
         if hasPhysics {
+            // TODO: new magnify view causing issues here
             box.physicsBody = SKPhysicsBody(polygonFrom: path)
             // default density value is 1.0, anything higher is relative to this
             box.physicsBody?.density = controls.density
