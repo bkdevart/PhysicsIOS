@@ -32,6 +32,7 @@
  
  Interface ideas
  - anything delightful
+ - update default colors to blue/orange scheme
  
  Code ideas
  - Look at changing from a shared control object to some kind of delegate model
@@ -84,9 +85,9 @@ struct ContentView: View {
     // Cannot use instance member 'controls' within property initializer; property initializers run before 'self' is available
     @State private var boxHeight = 6.0
     @State private var boxWidth = 6.0
-    @State private var r =  0.62  // 0.34
-    @State private var g = 0.53  // 0.74
-    @State private var b = 1.0  // 0.7
+    @State private var r =  0.0  // 0.34, 0.62
+    @State private var g = 0.43  // 0.74, 0.53
+    @State private var b = 0.83  // 0.7, 1.0
     @State private var sceneHeight = 500
     @State private var density = 1.0  // 1.0
     @State private var staticNode = false

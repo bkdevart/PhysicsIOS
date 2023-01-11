@@ -10,9 +10,9 @@ import SpriteKit
 
 // using this to track box size and color selection across views
 class UIJoin: ObservableObject {
-    @Published var r = 0.62  // 0.34
-    @Published var g = 0.53  // 0.74
-    @Published var b = 1.0  // 0.7
+    @Published var r = 0.0  // 0.34, 0.62
+    @Published var g = 0.43  // 0.74, 0.53
+    @Published var b = 0.83 // 0.7, 1.0
     @Published var selectedShape: Shape = .rectangle
     @Published var screenWidth: CGFloat = 428.0
     @Published var screenHeight: CGFloat = 428.0
@@ -36,7 +36,6 @@ class UIJoin: ObservableObject {
     @Published var usingCamGesture = false  // used to prevent shape drops, etc
     @Published var cameraOrigin = CGPoint(x: 0.0, y: 0.0)
     @Published var physicsEnvScale = 8.0  // this is multiplied by screen size
-//    @Published var physicsEnvRect: CGRect()
     
     // TODO: capture state of entire scene - not codable, deconstruct
     @Published var gameScene = SKScene()
