@@ -32,23 +32,21 @@
  
  Interface ideas
  - anything delightful
- - update default colors to blue/orange scheme
  
  Code ideas
  - Look at changing from a shared control object to some kind of delegate model
  
  Feature ideas
+ - Persistance - save state whenever phone is turned
+    - Allow user to set number of saves (just rolls and deletes old as new added)
+    - Allow user to favorite saves so that they are never deleted
  - figure out how to put an outline around edgeLoop
  - ml paint - once you can save scenes, make images for each one and have ml generate new background scenes for user in their "style"
  - make all objects physics objects that fall when you clear (fall to infinity)
  - Let user change paint objects into physics objects (make toggle switch for falling ball) - figure.fall.circle, digitalcrown.arrow.counterclockwise.fill
  - add option to shade objects and show they are rotating
- - draw edge around border of physics environment
  - Debug window - have listview that shows all nodes along with their properties when selected
  - Adjust gravity based on tilt of phone
- - Persistance - save state whenever phone is turned
-    - Allow user to set number of saves (just rolls and deletes old as new added)
-    - Allow user to favorite saves so that they are never deleted
  - Add velocity direction to play with damping (applyForce & applyImpulse)
  - make new view, use pop up menu to put all controls in to free up screen
  
