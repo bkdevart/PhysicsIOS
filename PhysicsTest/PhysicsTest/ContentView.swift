@@ -209,11 +209,6 @@ struct ContentView: View {
     }
 
     var body: some View {
-        
-//        @State var cameraZoom = 1.0
-
-
-        
         NavigationView {
             Group {
                 VStack {

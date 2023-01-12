@@ -36,13 +36,10 @@ class GameScene: SKScene {
         print("New size:\(size)")
     }
     
-    override func sceneDidLoad() {
-
-    }
-    
     // when the scene is presented by the view, didMove activates and triggers the physics engine environment
     override func didMove(to view: SKView) {
         // initialize physics environment
+//        let defaults = UserDefaults.standard
         // playview will be mulitiplied by screenMultiply
         let screenSizeX = 428.0  // dynamically do this later
         let physicsSize = screenSizeX * controls.physicsEnvScale
@@ -73,6 +70,7 @@ class GameScene: SKScene {
         moveScreen.minimumNumberOfTouches = 3
         moveScreen.maximumNumberOfTouches = 3
         view.addGestureRecognizer(moveScreen)
+//        defaults.set(view, forKey: "physicsContinue")
     }
     
     // not using this, keeping in case a use appears
