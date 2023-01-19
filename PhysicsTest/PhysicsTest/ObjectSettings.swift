@@ -10,16 +10,12 @@ import SpriteKit
 
 // using this to track box size and color selection across views
 class UIJoin: ObservableObject {
-    @Published var r = 0.0  // 0.34, 0.62
-    @Published var g = 0.43  // 0.74, 0.53
-    @Published var b = 0.83 // 0.7, 1.0
     @Published var selectedShape: Shape = .rectangle
     @Published var screenWidth: CGFloat = 428.0
     @Published var screenHeight: CGFloat = 428.0
     @Published var boxHeight = 6.0
     @Published var boxWidth = 6.0
     @Published var isPainting = false
-//    @Published var addMethod: AddMethod = .add  // TODO: replace with isPainting
     @Published var selectedNode = SKNode()
     @Published var selectedNodes = [SKNode]()
     @Published var removeOn = false
@@ -31,7 +27,6 @@ class UIJoin: ObservableObject {
     @Published var linearDamping = 0.1
     @Published var scalePixels = 1.0  // generic default value
     @Published var drop = true
-    @Published var screenSizeChangeCount = 0  // counts times screen is resized during run
     @Published var cameraLocked = true
     @Published var cameraScale = 1.0
     @Published var usingCamGesture = false  // used to prevent shape drops, etc
@@ -48,17 +43,17 @@ class UIJoin: ObservableObject {
     static var shared = UIJoin()
 }
 
-func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) -> SKNode {
-//        let location = touch.location(in: self)
+func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0,
+                lastRed: Double, lastGreen: Double, lastBlue: Double) -> SKNode {
     @ObservedObject var controls = UIJoin.shared
     
     // user can choose height and width
     let boxWidth = Int((controls.boxWidth / 100.0) * Double(controls.scalePixels))
     let boxHeight = Int((controls.boxHeight / 100.0) * Double(controls.scalePixels))
     // each color betwen 0 and 1 (based on slider)
-    let chosenColor: Color = Color(red: controls.r,
-                                   green: controls.g,
-                                   blue: controls.b)
+    let chosenColor: Color = Color(red: lastRed,
+                                   green: lastGreen,
+                                   blue: lastBlue)
     
     controls.selectedNode = SKNode()
     switch controls.selectedShape {
@@ -133,6 +128,11 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) -> 
 
 // this view is used by info screen to show object info
 struct ObjectSettings: View {
+    @AppStorage("TimesAppLoaded") private var timesAppLoaded = 0
+    @AppStorage("LastRed") private var lastRed = 0.0
+    @AppStorage("LastGreen") private var lastGreen = 0.43
+    @AppStorage("LastBlue") private var lastBlue = 0.83
+    
     @Binding var height: Double
     @Binding var width: Double
     @Binding var r: Double
@@ -143,13 +143,16 @@ struct ObjectSettings: View {
     @ObservedObject var controls = UIJoin.shared
     
     var body: some View {
-        Text("Current object values:")
-        Text("Object Height: \(height)")
-        Text("Object Width: \(width)")
-        Text("Background Red: \(r)")
-        Text("Background Green: \(g)")
-        Text("Background Blue: \(b)")
-        Text("Screen Height: \(controls.screenHeight)")
-        Text("Screen Width: \(controls.screenWidth)")
+        Group {
+            Text("Current object values:")
+            Text("Object Height: \(height)")
+            Text("Object Width: \(width)")
+            Text("Screen Height: \(controls.screenHeight)")
+            Text("Screen Width: \(controls.screenWidth)")
+        }
+        Text("Times app started: \(timesAppLoaded)")
+        Text("Stored Red: \(lastRed)")
+        Text("Stored Green: \(lastGreen)")
+        Text("Stored Blue: \(lastBlue)")
     }
 }

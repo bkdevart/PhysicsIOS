@@ -71,42 +71,30 @@ enum Shape: String, CaseIterable, Identifiable {
     var id: Self { self }
 }
 
-enum AddMethod: String, CaseIterable, Identifiable {
-    case add, paint, clear
-    var id: Self { self }
-}
-
-
 struct ContentView: View {
     @Environment(\.colorScheme) var currentMode
-    // default box/color values - these are initialized in UIJoin (may not need values?)
-    // TODO: these values are synced with default values in UIJoin - make all in one place?
-    // value may be needed at start (based on how initialization is handled)
-    // Cannot use instance member 'controls' within property initializer; property initializers run before 'self' is available
+    
     @State private var boxHeight = 6.0
     @State private var boxWidth = 6.0
-    @State private var r =  0.0  // 0.34, 0.62
-    @State private var g = 0.43  // 0.74, 0.53
-    @State private var b = 0.83  // 0.7, 1.0
     @State private var sceneHeight = 500
     @State private var density = 1.0  // 1.0
     @State private var staticNode = false
     @State private var linearDamping = 0.1
     
+    @AppStorage("LastRed") private var lastRed = 0.0
+    @AppStorage("LastGreen") private var lastGreen = 0.43
+    @AppStorage("LastBlue") private var lastBlue = 0.83
     
     // using this to track box size and color selection as it changes
     let controls = UIJoin.shared
 
     // houses shape picker selection
     @State private var selectedShape: Shape = .rectangle
-    @State private var addMethod: AddMethod = .add
     @State public var removeOn = false
     @State public var pourOn = false
     @State public var isPainting = false
-//    @State public var cameraLocked = true
     @State public var cameraZoom = 1.0
     @GestureState var magnifyBy = 1.0
-
     
     var scene: SKScene {
         // making this square helps with ratio issues when drawing shapes
@@ -123,10 +111,10 @@ struct ContentView: View {
         }
         controls.scalePixels = scalePixels
         scene.size = CGSize(width: scalePixels, height: scalePixels)
-        scene.scaleMode = .aspectFit  // .aspectFill // .resizeFill  // .aspectFit
+        scene.scaleMode = .aspectFit
         scene.view?.showsDrawCount = true
         // making complementary color of chosen object color
-        scene.backgroundColor = UIColor(red: abs(r - 1.0), green: abs(g - 1.0), blue: abs(b - 1.0), alpha: 0.5)
+        scene.backgroundColor = UIColor(red: abs(lastRed - 1.0), green: abs(lastGreen - 1.0), blue: abs(lastBlue - 1.0), alpha: 0.5)
         
         // add camera node
         let cameraNode = SKCameraNode()
@@ -153,7 +141,6 @@ struct ContentView: View {
                     Image(systemName: configuration.isOn ?
                             "drop.fill" : "drop")
                         .renderingMode(.template)
-//                        .foregroundColor(configuration.isOn ? .cyan : .black)
                         .font(.system(size: 50))
                 })
                 .buttonStyle(PlainButtonStyle())
@@ -186,8 +173,6 @@ struct ContentView: View {
                     Image(systemName: configuration.isOn ?
                           "eraser.fill": "eraser")
                         .renderingMode(.template)
-                        // this is a workaround to keep the window from resizing and clearing sprite objects
-//                        .font(configuration.isOn ? .system(size: 50) : .system(size: 49))
                         .font(.system(size: 50))
                 })
                 .buttonStyle(PlainButtonStyle())
@@ -205,7 +190,6 @@ struct ContentView: View {
                     Image(systemName: configuration.isOn ?
                           "paintbrush.fill": "paintbrush")
                         .renderingMode(.template)
-//                        .font(configuration.isOn ? .system(size: 50) : .system(size: 51))
                         .font(.system(size: 50))
                 })
                 .buttonStyle(PlainButtonStyle())
@@ -219,6 +203,7 @@ struct ContentView: View {
                 VStack {
                     // TODO: find a way to use Geometry Reader to dynamically fit and keep correct ratio for boxes
                     // LayoutAndGeometry from 100 days of swiftui could be helpful
+                    // Shape choice and height/width selection
                     HStack {
                         VStack {
                             Picker("Shape", selection: $selectedShape) {
@@ -227,110 +212,101 @@ struct ContentView: View {
                                 Text("Triangle").tag(Shape.triangle)
                             }
                             .onChange(of: selectedShape, perform: shapeChanged)
-//                            Text("\(selectedShape.rawValue) size")
                             
                             HStack {
                                 Text("H")
-                                    .foregroundColor(Color(red: r, green: g, blue: b))
+                                    .foregroundColor(Color(red: lastRed, green: lastGreen, blue: lastBlue))
                                 Slider(value: $boxHeight, in: 1...100, step: 1)
                                     .padding([.horizontal])
                                     .onChange(of: boxHeight, perform: sliderBoxHeightChanged)
                             }
                             HStack {
                                 Text("W")
-                                    .foregroundColor(Color(red: r, green: g, blue: b))
+                                    .foregroundColor(Color(red: lastRed, green: lastGreen, blue: lastBlue))
                                 Slider(value: $boxWidth, in: 1...100, step: 1)
                                     .padding([.horizontal])
                                     .onChange(of: boxWidth, perform: sliderBoxWidthChanged)
                             }
                         }
                         .padding()
+                        // RGB color selection
                         VStack {
                             VStack {
                                 // TODO: see if you can caculate complimentary color to current and adjust RGB text to match
                                 HStack {
                                     Text("R")
-                                        .foregroundColor(Color(red: (r - 0.5), green: (g - 0.5), blue: (b - 0.5), opacity: r))
-                                    Slider(value: $r, in: 0...1, step: 0.01)
+                                        .foregroundColor(Color(red: (lastRed - 0.5), green: (lastGreen - 0.5), blue: (lastBlue - 0.5), opacity: lastRed))
+                                    Slider(value: $lastRed, in: 0...1, step: 0.01)
                                         .padding([.horizontal])
-                                        .onChange(of: r, perform: sliderColorRChanged)
+                                        .onChange(of: lastRed, perform: sliderColorRChanged)
                                 }
                                 HStack {
                                     Text("G")
-                                        .foregroundColor(Color(red: r - 0.5, green: g - 0.5, blue: b - 0.5, opacity: g))
-                                    Slider(value: $g, in: 0...1, step: 0.01)
+                                        .foregroundColor(Color(red: lastRed - 0.5, green: lastGreen - 0.5, blue: lastBlue - 0.5, opacity: lastGreen))
+                                    Slider(value: $lastGreen, in: 0...1, step: 0.01)
                                         .padding([.horizontal])
-                                        .onChange(of: g, perform: sliderColorGChanged)
+                                        .onChange(of: lastGreen, perform: sliderColorGChanged)
                                 }
                                 HStack {
                                     Text("B")
-                                        .foregroundColor(Color(red: r - 0.5, green: g - 0.5, blue: b - 0.5, opacity: b))
-                                    Slider(value: $b, in: 0...1, step: 0.01)
+                                        .foregroundColor(Color(red: lastRed - 0.5, green: lastGreen - 0.5, blue: lastBlue - 0.5, opacity: lastBlue))
+                                    Slider(value: $lastBlue, in: 0...1, step: 0.01)
                                         .padding([.horizontal])
-                                        .onChange(of: b, perform: sliderColorBChanged)
+                                        .onChange(of: lastBlue, perform: sliderColorBChanged)
                                 }
-                                
                             }
                             .padding()
-                            .background(Color(red: r, green: g, blue: b))  // gives preview of chosen color
+                            .background(Color(red: lastRed, green: lastGreen, blue: lastBlue))  // gives preview of chosen color
                             .cornerRadius(20)
                         }
                         .padding()
                     }
+                    
                     // Toggle buttons
                     HStack {
-                        Toggle("Clear", isOn: $removeOn)
-                            .onChange(of: removeOn) { newValue in
-                                controls.removeOn = removeOn
-                            }
-                            .toggleStyle(ClearToggleStyle())
-                            .foregroundColor(Color(red: r, green: g, blue: b))
+                        // choose how to add/remove shapes to the physics environment
+                        // && currentMode == .light
+                        Toggle("Paint", isOn: $isPainting)
+                            .toggleStyle(PaintToggleStyle())
+                            .foregroundColor(Color(red: lastRed, green: lastGreen, blue: lastBlue))
+                            .onChange(of: isPainting, perform: addMethodChanged)
                         Toggle("Static", isOn: $staticNode)
                             .onChange(of: staticNode) { newValue in
                                 controls.staticNode = staticNode
                             }
                             .toggleStyle(StaticToggleStyle())
-                            .foregroundColor(Color(red: r, green: g, blue: b))
+                            .foregroundColor(Color(red: lastRed, green: lastGreen, blue: lastBlue))
                         Toggle("Pour", isOn: $pourOn)
                             .toggleStyle(PourToggleStyle())
-                            .foregroundColor(Color(red: r, green: g, blue: b))
+                            .foregroundColor(Color(red: lastRed, green: lastGreen, blue: lastBlue))
                             .onChange(of: pourOn) { newValue in
                                 controls.pourOn = pourOn
                             }
-                        // && currentMode == .light
-                        Toggle("Paint", isOn: $isPainting)
-                            .toggleStyle(PaintToggleStyle())
-                            .foregroundColor(Color(red: r, green: g, blue: b))
-//                            .onChange(of: cameraLocked) { newValue in
-//                                controls.cameraLocked = cameraLocked
-//                            }
-                            .onChange(of: isPainting, perform: addMethodChanged)
-                        // choose how to add/remove shapes to the physics environment
-//                        Picker("AddMethod", selection: $addMethod) {
-//                            Text("Add").tag(AddMethod.add)
-//                            Text("Paint").tag(AddMethod.paint)
-//                        }
-//                        .onChange(of: addMethod, perform: addMethodChanged)
+                        Toggle("Clear", isOn: $removeOn)
+                            .onChange(of: removeOn) { newValue in
+                                controls.removeOn = removeOn
+                            }
+                            .toggleStyle(ClearToggleStyle())
+                            .foregroundColor(Color(red: lastRed, green: lastGreen, blue: lastBlue))
                     }
                     .padding([.bottom, .top], 2)
+                    .frame(maxHeight: 52, alignment: .center)
                     
                     // physics environment
                     HStack {
                         GeometryReader { geometry in
                             let width = geometry.size.width
-//                            let height = geometry.size.height
-
-                            // this view contains the physics (will letter box if smaller than view area reserved for physics)
-                            // note: width is limited whether it is full frame or not
                             SpriteView(scene: scene)
                                 .frame(width: width)
                                 .onAppear{ self.storeGeometry(for: geometry) }
                         }
                     }
+                    
+                    // physics sliders
                     HStack {
                         HStack {
                             Text("Density")
-                                .foregroundColor(Color(red: r, green: g, blue: b))
+                                .foregroundColor(Color(red: lastRed, green: lastGreen, blue: lastBlue))
                             Slider(value: $density, in: 0...10, step: 1.0)
                                 .padding([.horizontal])
                                 .onChange(of: Float(density), perform: sliderDensityChanged)
@@ -338,7 +314,7 @@ struct ContentView: View {
                         .padding()
                         HStack {
                             Text("L Damp")
-                                .foregroundColor(Color(red: r, green: g, blue: b))
+                                .foregroundColor(Color(red: lastRed, green: lastGreen, blue: lastBlue))
                             Slider(value: $linearDamping, in: 0...1, step: 0.1)
                                 .padding([.horizontal])
                                 .onChange(of: Float(linearDamping), perform: sliderLinearDampingChanged)
@@ -346,21 +322,20 @@ struct ContentView: View {
                         .padding()
                     }
                     
-
+                    // clear/object info buttons
                     HStack {
-                        // shows different information here (user color settings, size settings)
                         Spacer()
                         Button(action: removeAll) {
                             Text("Clear All")
                         }
                         Spacer()
-                        NavigationLink("Object Info", destination: ObjectSettings(height: $boxHeight, width: $boxWidth, r: $r, g: $g, b: $b))
+                        // shows different information here (user color settings, size settings)
+                        NavigationLink("Object Info", destination: ObjectSettings(height: $boxHeight, width: $boxWidth, r: $lastRed, g: $lastGreen, b: $lastBlue))
                         Spacer()
                     }
-                    
                 }
             }
-            .background(Color(red: r, green: g, blue: b, opacity: 0.25))
+            .background(Color(red: lastRed, green: lastGreen, blue: lastBlue, opacity: 0.25))
         }
     }
     
@@ -370,15 +345,16 @@ struct ContentView: View {
     }
     
     private func sliderColorRChanged(to newValue: Double) {
-        controls.r = newValue
+        lastRed = newValue
     }
     
     private func sliderColorGChanged(to newValue: Double) {
-        controls.g = newValue
+        // save user defaults
+        lastGreen = newValue
     }
     
     private func sliderColorBChanged(to newValue: Double) {
-        controls.b = newValue
+        lastBlue = newValue
     }
     
     private func sliderBoxHeightChanged(to newValue: Double) {
