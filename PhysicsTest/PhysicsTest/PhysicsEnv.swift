@@ -161,15 +161,9 @@ class GameScene: SKScene {
         // using this to release physics objects (instead of start of touch event)
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
-
-        switch controls.addMethod {
-        // TODO: clear doesn't exist in dropdown currently, so this is arbitrary code
-        case .clear:
-            // select node and delete only that one
-            let touchedNodes = nodes(at: location)
-
-        case .add:
-            let touchedNodes = nodes(at: location)
+        let touchedNodes = nodes(at: location)
+        
+        if controls.isPainting == false {
             controls.selectedNodes = touchedNodes
             // will crash here if no nodes are touched
             if touchedNodes.count > 0 {
@@ -201,21 +195,15 @@ class GameScene: SKScene {
                 }
                 controls.drop = true
             }
-            
-        case .paint:
-            // remove paint
-            let touchedNodes = nodes(at: location)
         }
-        // this is needed to keep track of all children objects (shape nodes)
+        
         controls.gameScene = self
     }
     
     // drag
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        switch controls.addMethod {
-        case .clear:
-            print("Will think about this clear method dragging finger")
-        case .add:
+        
+        if controls.isPainting == false {
             for touch in touches {
                 let location = touch.location(in: self)
                 // do drag code
@@ -234,7 +222,7 @@ class GameScene: SKScene {
                     }
                 }
             }
-        case .paint:
+        } else {
             if (controls.usingCamGesture == false) {
                 for touch in touches {
                     let location = touch.location(in: self)
@@ -255,20 +243,7 @@ class GameScene: SKScene {
         
         backgroundColor = UIColor(red: abs(controls.r - 1.0), green: abs(controls.g - 1.0), blue: abs(controls.b - 1.0), alpha: 0.5)
    
-        switch controls.addMethod {
-        case .clear:
-            // select node and delete only that one
-            let touchedNodes = nodes(at: location)
-            controls.selectedNodes = touchedNodes
-            // will crash here if no nodes are touched
-            if touchedNodes.count > 0 {
-                controls.selectedNode = touchedNodes[0]
-            } else {
-                // this removes the last node that was touched from being saved
-                controls.selectedNode = SKNode()
-            }
-            controls.selectedNode.removeFromParent()
-        case .add:
+        if controls.isPainting == false {
             // TODO: see what you neeed to keep from this code after implementing drop (touchesEnded)
             let touchedNodes = nodes(at: location)
             controls.selectedNodes = touchedNodes
@@ -284,14 +259,14 @@ class GameScene: SKScene {
                     }
                 }
             }
-        case .paint:
+        } else {
             // remove paint
             let touchedNodes = nodes(at: location)
 
             if touchedNodes.count > 0 {
                 let selectedNode = touchedNodes[0]
                 controls.selectedNodes = touchedNodes
-                if (Int(selectedNode.zPosition) == -5 && controls.addMethod == .paint && controls.removeOn) {
+                if (Int(selectedNode.zPosition) == -5 && controls.removeOn) {
                     controls.selectedNode = selectedNode
                     controls.selectedNode.removeFromParent()
                 }
@@ -300,6 +275,7 @@ class GameScene: SKScene {
                 addChild(newNode)
             }
         }
+        
         // this is needed to keep track of all children objects (shape nodes)
         controls.gameScene = self
     }

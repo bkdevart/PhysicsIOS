@@ -32,6 +32,8 @@
  
  Interface ideas
  - anything delightful
+ - replace camera toggle with paint toggle, remove add/paint dropdown
+ - see if it's possible to make slider button change to complementary color
  
  Code ideas
  - Look at changing from a shared control object to some kind of delegate model
@@ -100,7 +102,8 @@ struct ContentView: View {
     @State private var addMethod: AddMethod = .add
     @State public var removeOn = false
     @State public var pourOn = false
-    @State public var cameraLocked = true
+    @State public var isPainting = false
+//    @State public var cameraLocked = true
     @State public var cameraZoom = 1.0
     @GestureState var magnifyBy = 1.0
 
@@ -184,7 +187,8 @@ struct ContentView: View {
                           "eraser.fill": "eraser")
                         .renderingMode(.template)
                         // this is a workaround to keep the window from resizing and clearing sprite objects
-                        .font(configuration.isOn ? .system(size: 50) : .system(size: 49))
+//                        .font(configuration.isOn ? .system(size: 50) : .system(size: 49))
+                        .font(.system(size: 50))
                 })
                 .buttonStyle(PlainButtonStyle())
             }
@@ -192,15 +196,16 @@ struct ContentView: View {
     }
     
     // this works opposite due to variable being set to false by default
-    struct CameraToggleStyle: ToggleStyle {
+    struct PaintToggleStyle: ToggleStyle {
         func makeBody(configuration: Configuration) -> some View {
             HStack {
                 Button(action: {
                     configuration.isOn.toggle()
                 }, label: {
                     Image(systemName: configuration.isOn ?
-                          "video" : "arrow.up.right.video")
+                          "paintbrush.fill": "paintbrush")
                         .renderingMode(.template)
+//                        .font(configuration.isOn ? .system(size: 50) : .system(size: 51))
                         .font(.system(size: 50))
                 })
                 .buttonStyle(PlainButtonStyle())
@@ -272,6 +277,7 @@ struct ContentView: View {
                         }
                         .padding()
                     }
+                    // Toggle buttons
                     HStack {
                         Toggle("Clear", isOn: $removeOn)
                             .onChange(of: removeOn) { newValue in
@@ -292,20 +298,23 @@ struct ContentView: View {
                                 controls.pourOn = pourOn
                             }
                         // && currentMode == .light
-                        Toggle("Camera Lock", isOn: $cameraLocked)
-                            .toggleStyle(CameraToggleStyle())
+                        Toggle("Paint", isOn: $isPainting)
+                            .toggleStyle(PaintToggleStyle())
                             .foregroundColor(Color(red: r, green: g, blue: b))
-                            .onChange(of: cameraLocked) { newValue in
-                                controls.cameraLocked = cameraLocked
-                            }
+//                            .onChange(of: cameraLocked) { newValue in
+//                                controls.cameraLocked = cameraLocked
+//                            }
+                            .onChange(of: isPainting, perform: addMethodChanged)
                         // choose how to add/remove shapes to the physics environment
-                        Picker("AddMethod", selection: $addMethod) {
-                            Text("Add").tag(AddMethod.add)
-                            Text("Paint").tag(AddMethod.paint)
-                        }
-                        .onChange(of: addMethod, perform: addMethodChanged)
+//                        Picker("AddMethod", selection: $addMethod) {
+//                            Text("Add").tag(AddMethod.add)
+//                            Text("Paint").tag(AddMethod.paint)
+//                        }
+//                        .onChange(of: addMethod, perform: addMethodChanged)
                     }
                     .padding([.bottom, .top], 2)
+                    
+                    // physics environment
                     HStack {
                         GeometryReader { geometry in
                             let width = geometry.size.width
@@ -384,8 +393,9 @@ struct ContentView: View {
         controls.selectedShape = newValue
     }
     
-    private func addMethodChanged(to newValue: AddMethod) {
-        controls.addMethod = newValue
+    private func addMethodChanged(to newValue: Bool) {
+        controls.isPainting = newValue
+//        controls.addMethod = newValue
     }
     
     private func removeAll() {

@@ -18,7 +18,8 @@ class UIJoin: ObservableObject {
     @Published var screenHeight: CGFloat = 428.0
     @Published var boxHeight = 6.0
     @Published var boxWidth = 6.0
-    @Published var addMethod: AddMethod = .add
+    @Published var isPainting = false
+//    @Published var addMethod: AddMethod = .add  // TODO: replace with isPainting
     @Published var selectedNode = SKNode()
     @Published var selectedNodes = [SKNode]()
     @Published var removeOn = false
@@ -47,7 +48,6 @@ class UIJoin: ObservableObject {
     static var shared = UIJoin()
 }
 
-// TODO: add mass and other features to this
 func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) -> SKNode {
 //        let location = touch.location(in: self)
     @ObservedObject var controls = UIJoin.shared
@@ -75,7 +75,6 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) -> 
         box.position = location
         box.zPosition = CGFloat(zPosition)
         if hasPhysics {
-            // TODO: new magnify view causing issues here
             box.physicsBody = SKPhysicsBody(polygonFrom: path)
             // default density value is 1.0, anything higher is relative to this
             box.physicsBody?.density = controls.density
@@ -109,7 +108,7 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0) -> 
 
     case .triangle:
         let path = CGMutablePath()
-        // TODO: try two side lengths and an angle, infer 3rd size
+        // TODO: for different triangles try two side lengths and an angle, infer 3rd size
         // center shape around x=0
         let triangle_half = Int(boxWidth) / 2
         path.move(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // triangle top
@@ -147,9 +146,9 @@ struct ObjectSettings: View {
         Text("Current object values:")
         Text("Object Height: \(height)")
         Text("Object Width: \(width)")
-        Text("Red: \(r)")
-        Text("Green: \(g)")
-        Text("Blue: \(b)")
+        Text("Background Red: \(r)")
+        Text("Background Green: \(g)")
+        Text("Background Blue: \(b)")
         Text("Screen Height: \(controls.screenHeight)")
         Text("Screen Width: \(controls.screenWidth)")
     }
