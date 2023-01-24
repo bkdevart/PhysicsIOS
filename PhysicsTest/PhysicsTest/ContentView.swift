@@ -32,8 +32,7 @@
  
  Interface ideas
  - anything delightful
- - replace camera toggle with paint toggle, remove add/paint dropdown
- - see if it's possible to make slider button change to complementary color
+ - create settings button to allow for different theme choices (complementary, etc)
  
  Code ideas
  - Look at changing from a shared control object to some kind of delegate model
@@ -130,6 +129,72 @@ struct ContentView: View {
         
         return scene
     }
+    
+    struct SliderView3: View {
+        @Binding var value: Double
+        
+        @State var lastCoordinateValue: CGFloat = 0.0
+        var sliderRange: ClosedRange<Double> = 1...100
+        var thumbColor: Color = .yellow
+        var minTrackColor: Color = .blue
+        var maxTrackColor: Color = .gray
+        
+        var body: some View {
+            GeometryReader { gr in
+                // TODO: may need to tweak these (hard to hit targets)
+                let thumbHeight = gr.size.height * 1.1
+                let thumbWidth = gr.size.width * 0.03  // make this larger and see if it helps orig val: 0.03, 0.1 has bad look
+                let radius = gr.size.height * 0.5
+                let minValue = gr.size.width * 0.015
+                let maxValue = (gr.size.width * 0.98) - thumbWidth
+                
+                let scaleFactor = (maxValue - minValue) / (sliderRange.upperBound - sliderRange.lowerBound)
+                let lower = sliderRange.lowerBound
+                
+                // TODO: look into pulling this from elsewhere (can't get user defaults from here)
+//                let sliderVal = self.value
+                let sliderVal = (self.value - lower) * scaleFactor + minValue
+                
+                ZStack {
+                    Rectangle()
+                        .foregroundColor(maxTrackColor)
+                        .frame(width: gr.size.width, height: gr.size.height * 0.95)
+                        .clipShape(RoundedRectangle(cornerRadius: radius))
+                    HStack {
+                        Rectangle()
+                            .foregroundColor(minTrackColor)
+                        // Invalid frame dimension (negative or non-finite).
+                        .frame(width: sliderVal, height: gr.size.height * 0.95)
+                        Spacer()
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: radius))
+                    HStack {
+                        RoundedRectangle(cornerRadius: radius)
+                            .foregroundColor(thumbColor)
+                            .frame(width: thumbWidth, height: thumbHeight)
+                            .offset(x: sliderVal)
+                            .gesture(
+                                DragGesture(minimumDistance: 0)
+                                    .onChanged { v in
+                                        if (abs(v.translation.width) < 0.1) {
+                                            self.lastCoordinateValue = sliderVal
+                                        }
+                                        if v.translation.width > 0 {
+                                            let nextCoordinateValue = min(maxValue, self.lastCoordinateValue + v.translation.width)
+                                            self.value = ((nextCoordinateValue - minValue) / scaleFactor)  + lower
+                                        } else {
+                                            let nextCoordinateValue = max(minValue, self.lastCoordinateValue + v.translation.width)
+                                            self.value = ((nextCoordinateValue - minValue) / scaleFactor) + lower
+                                        }
+                                   }
+                            )
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+
    
     
     struct PourToggleStyle: ToggleStyle {
@@ -233,26 +298,38 @@ struct ContentView: View {
                         VStack {
                             VStack {
                                 // TODO: see if you can caculate complimentary color to current and adjust RGB text to match
-                                HStack {
-                                    Text("R")
-                                        .foregroundColor(Color(red: (lastRed - 0.5), green: (lastGreen - 0.5), blue: (lastBlue - 0.5), opacity: lastRed))
-                                    Slider(value: $lastRed, in: 0...1, step: 0.01)
-                                        .padding([.horizontal])
-                                        .onChange(of: lastRed, perform: sliderColorRChanged)
+                                // red selector
+                                VStack(spacing:0) {
+                                    SliderView3(value: $lastRed,
+                                                sliderRange: 0...1,
+                                                thumbColor: .red,
+                                                minTrackColor: Color(red: abs(lastRed - 1.0), green: abs(lastGreen - 1.0), blue: abs(lastBlue - 1.0), opacity: 1.0),
+                                                maxTrackColor: Color(red: (lastRed), green: (lastGreen), blue: (lastBlue), opacity: 1.0)
+                                                )
+                                    .frame(height:30)
+                                    .onChange(of: lastRed, perform: sliderColorRChanged)
                                 }
-                                HStack {
-                                    Text("G")
-                                        .foregroundColor(Color(red: lastRed - 0.5, green: lastGreen - 0.5, blue: lastBlue - 0.5, opacity: lastGreen))
-                                    Slider(value: $lastGreen, in: 0...1, step: 0.01)
-                                        .padding([.horizontal])
-                                        .onChange(of: lastGreen, perform: sliderColorGChanged)
+                                // green selector
+                                VStack(spacing:0) {
+                                    SliderView3(value: $lastGreen,
+                                                sliderRange: 0...1,
+                                                thumbColor: .green,
+                                                minTrackColor: Color(red: abs(lastRed - 1.0), green: abs(lastGreen - 1.0), blue: abs(lastBlue - 1.0), opacity: 1.0),
+                                                maxTrackColor: Color(red: (lastRed), green: (lastGreen), blue: (lastBlue), opacity: 1.0)
+                                                )
+                                    .frame(height:30)
+                                    .onChange(of: lastGreen, perform: sliderColorGChanged)
                                 }
-                                HStack {
-                                    Text("B")
-                                        .foregroundColor(Color(red: lastRed - 0.5, green: lastGreen - 0.5, blue: lastBlue - 0.5, opacity: lastBlue))
-                                    Slider(value: $lastBlue, in: 0...1, step: 0.01)
-                                        .padding([.horizontal])
-                                        .onChange(of: lastBlue, perform: sliderColorBChanged)
+                                // blue selector
+                                VStack(spacing:0) {
+                                    SliderView3(value: $lastBlue,
+                                                sliderRange: 0...1,
+                                                thumbColor: .blue,
+                                                minTrackColor: Color(red: abs(lastRed - 1.0), green: abs(lastGreen - 1.0), blue: abs(lastBlue - 1.0), opacity: 1.0),
+                                                maxTrackColor: Color(red: (lastRed), green: (lastGreen), blue: (lastBlue), opacity: 1.0)
+                                                )
+                                    .frame(height:30)
+                                    .onChange(of: lastBlue, perform: sliderColorBChanged)
                                 }
                             }
                             .padding()
@@ -330,7 +407,7 @@ struct ContentView: View {
                         }
                         Spacer()
                         // shows different information here (user color settings, size settings)
-                        NavigationLink("Object Info", destination: ObjectSettings(height: $boxHeight, width: $boxWidth, r: $lastRed, g: $lastGreen, b: $lastBlue))
+                        NavigationLink("Object Info", destination: ObjectSettings())
                         Spacer()
                     }
                 }
@@ -371,7 +448,6 @@ struct ContentView: View {
     
     private func addMethodChanged(to newValue: Bool) {
         controls.isPainting = newValue
-//        controls.addMethod = newValue
     }
     
     private func removeAll() {
@@ -388,8 +464,8 @@ struct ContentView: View {
 }
 
 
-//struct ContentView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
-//    }
-//}
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+    }
+}

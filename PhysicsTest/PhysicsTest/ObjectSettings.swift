@@ -133,11 +133,11 @@ struct ObjectSettings: View {
     @AppStorage("LastGreen") private var lastGreen = 0.43
     @AppStorage("LastBlue") private var lastBlue = 0.83
     
-    @Binding var height: Double
-    @Binding var width: Double
-    @Binding var r: Double
-    @Binding var g: Double
-    @Binding var b: Double
+//    @Binding var height: Double
+//    @Binding var width: Double
+//    @Binding var r: Double
+//    @Binding var g: Double
+//    @Binding var b: Double
     
     
     @ObservedObject var controls = UIJoin.shared
@@ -145,8 +145,8 @@ struct ObjectSettings: View {
     var body: some View {
         Group {
             Text("Current object values:")
-            Text("Object Height: \(height)")
-            Text("Object Width: \(width)")
+            Text("Object Height: \(controls.boxHeight)")
+            Text("Object Width: \(controls.boxWidth)")
             Text("Screen Height: \(controls.screenHeight)")
             Text("Screen Width: \(controls.screenWidth)")
         }
