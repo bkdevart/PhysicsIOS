@@ -266,7 +266,7 @@ struct ContentView: View {
         }
     }
 
-    // this is where the view is drawn
+    // this is where the views are drawn (iPhone and iPad supported)
     @ViewBuilder
     var body: some View {
         if horizontalSizeClass == .compact {
