@@ -30,6 +30,9 @@
  - Clear all can get stuck, when tapping screen after, clear catches up
  - Clear all removes camera node
  
+ Icon
+ - Green/Purple, redish-light-green (current color in simulator), blue/yellow
+ 
  Interface ideas
  - anything delightful
  - create settings button to allow for different theme choices (complementary, etc)
@@ -72,6 +75,7 @@ enum Shape: String, CaseIterable, Identifiable {
 
 struct ContentView: View {
     @Environment(\.colorScheme) var currentMode
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass  // to get screenSize (iPad or iPhone)
     
     @State private var boxHeight = 6.0
     @State private var boxWidth = 6.0
@@ -262,8 +266,164 @@ struct ContentView: View {
         }
     }
 
+    // this is where the view is drawn
+    @ViewBuilder
     var body: some View {
-        NavigationView {
+        if horizontalSizeClass == .compact {
+            // original iOS view
+            NavigationView {
+                Group {
+                    VStack {
+                        // TODO: find a way to use Geometry Reader to dynamically fit and keep correct ratio for boxes
+                        // LayoutAndGeometry from 100 days of swiftui could be helpful
+                        // Shape choice and height/width selection
+                        HStack {
+                            VStack {
+                                Picker("Shape", selection: $selectedShape) {
+                                    Text("Rectangle").tag(Shape.rectangle)
+                                    Text("Circle").tag(Shape.circle)
+                                    Text("Triangle").tag(Shape.triangle)
+                                }
+                                .onChange(of: selectedShape, perform: shapeChanged)
+                                
+                                HStack {
+                                    Text("H")
+                                        .foregroundColor(Color(red: lastRed, green: lastGreen, blue: lastBlue))
+                                    Slider(value: $boxHeight, in: 1...100, step: 1)
+                                        .padding([.horizontal])
+                                        .onChange(of: boxHeight, perform: sliderBoxHeightChanged)
+                                }
+                                HStack {
+                                    Text("W")
+                                        .foregroundColor(Color(red: lastRed, green: lastGreen, blue: lastBlue))
+                                    Slider(value: $boxWidth, in: 1...100, step: 1)
+                                        .padding([.horizontal])
+                                        .onChange(of: boxWidth, perform: sliderBoxWidthChanged)
+                                }
+                            }
+                            .padding()
+                            // RGB color selection
+                            VStack {
+                                VStack {
+                                    // TODO: see if you can caculate complimentary color to current and adjust RGB text to match
+                                    // red selector
+                                    VStack(spacing:0) {
+                                        SliderView3(value: $lastRed,
+                                                    sliderRange: 0...1,
+                                                    thumbColor: .red,
+                                                    minTrackColor: Color(red: abs(lastRed - 1.0), green: abs(lastGreen - 1.0), blue: abs(lastBlue - 1.0), opacity: 1.0),
+                                                    maxTrackColor: Color(red: (lastRed), green: (lastGreen), blue: (lastBlue), opacity: 1.0)
+                                        )
+                                        .frame(height:30)
+                                        .onChange(of: lastRed, perform: sliderColorRChanged)
+                                    }
+                                    // green selector
+                                    VStack(spacing:0) {
+                                        SliderView3(value: $lastGreen,
+                                                    sliderRange: 0...1,
+                                                    thumbColor: .green,
+                                                    minTrackColor: Color(red: abs(lastRed - 1.0), green: abs(lastGreen - 1.0), blue: abs(lastBlue - 1.0), opacity: 1.0),
+                                                    maxTrackColor: Color(red: (lastRed), green: (lastGreen), blue: (lastBlue), opacity: 1.0)
+                                        )
+                                        .frame(height:30)
+                                        .onChange(of: lastGreen, perform: sliderColorGChanged)
+                                    }
+                                    // blue selector
+                                    VStack(spacing:0) {
+                                        SliderView3(value: $lastBlue,
+                                                    sliderRange: 0...1,
+                                                    thumbColor: .blue,
+                                                    minTrackColor: Color(red: abs(lastRed - 1.0), green: abs(lastGreen - 1.0), blue: abs(lastBlue - 1.0), opacity: 1.0),
+                                                    maxTrackColor: Color(red: (lastRed), green: (lastGreen), blue: (lastBlue), opacity: 1.0)
+                                        )
+                                        .frame(height:30)
+                                        .onChange(of: lastBlue, perform: sliderColorBChanged)
+                                    }
+                                }
+                                .padding()
+                                .background(Color(red: lastRed, green: lastGreen, blue: lastBlue))  // gives preview of chosen color
+                                .cornerRadius(20)
+                            }
+                            .padding()
+                        }
+                        
+                        // Toggle buttons
+                        HStack {
+                            // choose how to add/remove shapes to the physics environment
+                            // && currentMode == .light
+                            Toggle("Paint", isOn: $isPainting)
+                                .toggleStyle(PaintToggleStyle())
+                                .foregroundColor(Color(red: lastRed, green: lastGreen, blue: lastBlue))
+                                .onChange(of: isPainting, perform: addMethodChanged)
+                            Toggle("Static", isOn: $staticNode)
+                                .onChange(of: staticNode) { newValue in
+                                    controls.staticNode = staticNode
+                                }
+                                .toggleStyle(StaticToggleStyle())
+                                .foregroundColor(Color(red: lastRed, green: lastGreen, blue: lastBlue))
+                            Toggle("Pour", isOn: $pourOn)
+                                .toggleStyle(PourToggleStyle())
+                                .foregroundColor(Color(red: lastRed, green: lastGreen, blue: lastBlue))
+                                .onChange(of: pourOn) { newValue in
+                                    controls.pourOn = pourOn
+                                }
+                            Toggle("Clear", isOn: $removeOn)
+                                .onChange(of: removeOn) { newValue in
+                                    controls.removeOn = removeOn
+                                }
+                                .toggleStyle(ClearToggleStyle())
+                                .foregroundColor(Color(red: lastRed, green: lastGreen, blue: lastBlue))
+                        }
+                        .padding([.bottom, .top], 2)
+                        .frame(maxHeight: 52, alignment: .center)
+                        
+                        // physics environment
+                        HStack {
+                            GeometryReader { geometry in
+                                let width = geometry.size.width
+                                SpriteView(scene: scene)
+                                    .frame(width: width)
+                                    .onAppear{ self.storeGeometry(for: geometry) }
+                            }
+                        }
+                        
+                        // physics sliders
+                        HStack {
+                            HStack {
+                                Text("Density")
+                                    .foregroundColor(Color(red: lastRed, green: lastGreen, blue: lastBlue))
+                                Slider(value: $density, in: 0...10, step: 1.0)
+                                    .padding([.horizontal])
+                                    .onChange(of: Float(density), perform: sliderDensityChanged)
+                            }
+                            .padding()
+                            HStack {
+                                Text("L Damp")
+                                    .foregroundColor(Color(red: lastRed, green: lastGreen, blue: lastBlue))
+                                Slider(value: $linearDamping, in: 0...1, step: 0.1)
+                                    .padding([.horizontal])
+                                    .onChange(of: Float(linearDamping), perform: sliderLinearDampingChanged)
+                            }
+                            .padding()
+                        }
+                        
+                        // clear/object info buttons
+                        HStack {
+                            Spacer()
+                            Button(action: removeAll) {
+                                Text("Clear All")
+                            }
+                            Spacer()
+                            // shows different information here (user color settings, size settings)
+                            NavigationLink("Object Info", destination: ObjectSettings())
+                            Spacer()
+                        }
+                    }
+                }
+                .background(Color(red: lastRed, green: lastGreen, blue: lastBlue, opacity: 0.25))
+            }
+        } else {
+            // ipad view
             Group {
                 VStack {
                     // TODO: find a way to use Geometry Reader to dynamically fit and keep correct ratio for boxes
@@ -305,7 +465,7 @@ struct ContentView: View {
                                                 thumbColor: .red,
                                                 minTrackColor: Color(red: abs(lastRed - 1.0), green: abs(lastGreen - 1.0), blue: abs(lastBlue - 1.0), opacity: 1.0),
                                                 maxTrackColor: Color(red: (lastRed), green: (lastGreen), blue: (lastBlue), opacity: 1.0)
-                                                )
+                                    )
                                     .frame(height:30)
                                     .onChange(of: lastRed, perform: sliderColorRChanged)
                                 }
@@ -316,7 +476,7 @@ struct ContentView: View {
                                                 thumbColor: .green,
                                                 minTrackColor: Color(red: abs(lastRed - 1.0), green: abs(lastGreen - 1.0), blue: abs(lastBlue - 1.0), opacity: 1.0),
                                                 maxTrackColor: Color(red: (lastRed), green: (lastGreen), blue: (lastBlue), opacity: 1.0)
-                                                )
+                                    )
                                     .frame(height:30)
                                     .onChange(of: lastGreen, perform: sliderColorGChanged)
                                 }
@@ -327,7 +487,7 @@ struct ContentView: View {
                                                 thumbColor: .blue,
                                                 minTrackColor: Color(red: abs(lastRed - 1.0), green: abs(lastGreen - 1.0), blue: abs(lastBlue - 1.0), opacity: 1.0),
                                                 maxTrackColor: Color(red: (lastRed), green: (lastGreen), blue: (lastBlue), opacity: 1.0)
-                                                )
+                                    )
                                     .frame(height:30)
                                     .onChange(of: lastBlue, perform: sliderColorBChanged)
                                 }
