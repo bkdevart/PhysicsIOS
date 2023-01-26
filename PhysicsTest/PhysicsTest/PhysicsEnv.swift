@@ -99,10 +99,10 @@ class GameScene: SKScene {
             camera?.setScale(newScale)
             controls.camera.xScale = newScale
             controls.usingCamGesture = false
-       }
-       else {
+       } else {
             // On cancellation, return the piece to its original location.
-           camera?.setScale(cameraScale)
+           // TODO: is this causing camera reset?  - continue testing to verify
+//           camera?.setScale(cameraScale)
             controls.usingCamGesture = false
        }
     }
@@ -131,8 +131,9 @@ class GameScene: SKScene {
        }
        else {
             // On cancellation, return the piece to its original location.
-            camera?.position.x = self.startX
-            camera?.position.y = self.startY
+           // TODO: not sure if this logic is needed (may cause view reset) - continue to test
+//            camera?.position.x = self.startX
+//            camera?.position.y = self.startY
            controls.camera.position = camera!.position
             controls.usingCamGesture = false
        }
@@ -146,6 +147,7 @@ class GameScene: SKScene {
         let translation = sender.translation(in: piece.superview)
            if sender.state == .began {
                // Save the view's original position.
+               // TODO: this might be causing unnesessary re-centering
                self.initialCenter = piece.center
            }
             // Update the position for the .began, .changed, and .ended states

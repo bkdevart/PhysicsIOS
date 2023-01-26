@@ -133,26 +133,24 @@ struct ObjectSettings: View {
     @AppStorage("LastGreen") private var lastGreen = 0.43
     @AppStorage("LastBlue") private var lastBlue = 0.83
     
-//    @Binding var height: Double
-//    @Binding var width: Double
-//    @Binding var r: Double
-//    @Binding var g: Double
-//    @Binding var b: Double
-    
-    
     @ObservedObject var controls = UIJoin.shared
     
     var body: some View {
         Group {
-            Text("Current object values:")
-            Text("Object Height: \(controls.boxHeight)")
-            Text("Object Width: \(controls.boxWidth)")
-            Text("Screen Height: \(controls.screenHeight)")
-            Text("Screen Width: \(controls.screenWidth)")
+            Text("Stored values:")
+                .font(.headline)
+            Text("Times app started: \(timesAppLoaded)")
+            Text("Stored Red: \(lastRed)")
+            Text("Stored Green: \(lastGreen)")
+            Text("Stored Blue: \(lastBlue)")
         }
-        Text("Times app started: \(timesAppLoaded)")
-        Text("Stored Red: \(lastRed)")
-        Text("Stored Green: \(lastGreen)")
-        Text("Stored Blue: \(lastBlue)")
+        Spacer()
+        Text("Current object values:")
+            .font(.headline)
+        Text("Object Height: \(controls.boxHeight)")
+        Text("Object Width: \(controls.boxWidth)")
+        Text("Screen Height: \(controls.screenHeight)")
+        Text("Screen Width: \(controls.screenWidth)")
+        
     }
 }
