@@ -191,6 +191,9 @@ class GameScene: SKScene {
                     if controls.drop && !controls.removeOn && controls.usingCamGesture == false {
                         let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue)
                         addChild(newNode)
+                    } else if !controls.removeOn && controls.isPainting {
+                        // TODO: update selected node so that paint node can be deleted
+                        controls.selectedNode = touchedNodes[0]
                     }
                 }
             } else {
@@ -202,17 +205,18 @@ class GameScene: SKScene {
                 controls.drop = true
             }
         }
-        
         controls.gameScene = self
     }
     
     // drag
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         
+        // TODO: refactor this logic (too complex with new interface, jittery animation and bugs)
+        // dropping physics object
         if controls.isPainting == false {
             for touch in touches {
                 let location = touch.location(in: self)
-                // do drag code
+                // dragging physics node code
                 if controls.selectedNodes.count > 0 {
                     // check if it is a paint node
                     if controls.selectedNode.zPosition != -5 {
@@ -229,11 +233,26 @@ class GameScene: SKScene {
                 }
             }
         } else {
+            // erasing painting, dragging paint
             if (controls.usingCamGesture == false) {
                 for touch in touches {
                     let location = touch.location(in: self)
-                    let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue)
-                    addChild(newNode)
+                    let touchedNodes = nodes(at: location)
+                    controls.selectedNodes = touchedNodes
+                    // check for eraser, remove paint
+                    if touchedNodes.count > 0 && controls.removeOn {
+                        // check if selectedNode is paint node
+                        if touchedNodes[0].zPosition == -5 {
+                            // log node and remove
+                            controls.selectedNode = touchedNodes[0]
+                            controls.selectedNode.removeFromParent()
+                        }
+                    } else {
+                        // paint
+                        let location = touch.location(in: self)
+                        let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue)
+                        addChild(newNode)
+                    }
                 }
             }
         }
