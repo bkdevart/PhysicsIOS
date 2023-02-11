@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SpriteKit
+import UniformTypeIdentifiers  // for svg
 
 // using this to track box size and color selection across views
 class UIJoin: ObservableObject {
@@ -122,6 +123,35 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0,
             triangle.physicsBody?.linearDamping = controls.linearDamping
         }
         return triangle
+        
+//    case .pomegranite:
+//        // TODO: import svg and convert to physics node
+////        guard camera != nil else {return}
+////        guard let svg = UTType("Pomegranate") else { return SKShapeNode()}
+//        guard let svg = UTType("Pomegranate") else { return SKShapeNode()}
+//        
+////        let svgImage = SVGKImage(contentsOf: svgFileURL)
+//
+//        for shapeNode in svg.shapes as! [CAShapeLayer] {
+//            let skShapeNode = SKShapeNode(path: shapeNode.path)
+//            skShapeNode.fillColor = shapeNode.fillColor
+//            skShapeNode.strokeColor = shapeNode.strokeColor
+//            skShapeNode.lineWidth = shapeNode.lineWidth
+//            scene.addChild(skShapeNode)
+//        }
+//        
+////        let fileData = try Data(contentsOf: svgFileURL)
+//        let fileUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
+//                                                             svgFileURL.pathExtension as NSString, nil)?.takeRetainedValue()
+//
+//        if UTTypeConformsTo(fileUTI!, kUTTypeScalableVectorGraphics) {
+//            // file is a valid SVG file
+//        } else {
+//            // file is not a valid SVG file
+//        }
+
+        
+//        return svg
     }
 }
 

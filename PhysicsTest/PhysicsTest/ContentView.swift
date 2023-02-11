@@ -68,8 +68,9 @@ import SwiftUI
 import CoreData
 import SpriteKit
 
+// TODO: move this to ObjectSettings file
 enum Shape: String, CaseIterable, Identifiable {
-    case rectangle, circle, triangle
+    case rectangle, circle, triangle  // , pomegranite
     var id: Self { self }
 }
 

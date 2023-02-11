@@ -22,6 +22,7 @@ class GameScene: SKScene {
     var startY = CGFloat()
     var cameraScale = CGFloat()
     
+    // info on gesture recognizers: https://developer.apple.com/documentation/uikit/uigesturerecognizer
     
     // TODO: create object to store physics environment state
 //    struct physicEnvStruct: Codable, Identifiable {
@@ -102,7 +103,7 @@ class GameScene: SKScene {
        } else {
             // On cancellation, return the piece to its original location.
            // TODO: is this causing camera reset?  - continue testing to verify
-//           camera?.setScale(cameraScale)
+           camera?.setScale(cameraScale)
             controls.usingCamGesture = false
        }
     }
@@ -112,31 +113,56 @@ class GameScene: SKScene {
         // handle the camera pan
         guard sender.view != nil else {return}
         guard camera != nil else {return}
-        let piece = sender.view!
+//        let piece = sender.view!
         
-        let translation = sender.translation(in: piece.superview)
+        // translation gives us the center point between two fingers touching for pan
+        let translation = sender.translation(in: sender.view!.superview)
+        // starting to pan, two fingers down
+        print(sender.state)
+        
         if sender.state == .began {
            // Retreive the camera's original position
             self.startX = controls.camera.position.x
             self.startY = controls.camera.position.y
             controls.usingCamGesture = true
         }
-        // Update the position for the .began, .changed, and .ended states
+        
+        // continuing to pan with fingers
+        if sender.state == .changed
+        {
+            // Add the X and Y translation to the view's original position.
+            camera?.position.x = self.startX - translation.x
+            camera?.position.y = self.startY + translation.y
+            controls.camera.position = camera!.position
+            controls.usingCamGesture = false
+        }
+                
+//        // lifting fingers from screen (end of pan)
+//        if sender.state == .ended {
+//            print("Ended")
+//            // On cancellation, return the piece to its original location.
+//            // TODO: not sure if this logic is needed (may cause view reset) - continue to test
+//            camera?.position.x = self.startX
+//            camera?.position.y = self.startY
+//            controls.camera.position = camera!.position
+//            controls.usingCamGesture = false
+//            // TODO: update startX & startY?
+//
+//        }
+        
+        // TODO: understand what .cancelled represents - may not belong to this gesture
         if sender.state != .cancelled {
             // Add the X and Y translation to the view's original position.
             camera?.position.x = self.startX - translation.x
             camera?.position.y = self.startY + translation.y
             controls.camera.position = camera!.position
             controls.usingCamGesture = false
-       }
-       else {
-            // On cancellation, return the piece to its original location.
-           // TODO: not sure if this logic is needed (may cause view reset) - continue to test
-//            camera?.position.x = self.startX
-//            camera?.position.y = self.startY
-           controls.camera.position = camera!.position
-            controls.usingCamGesture = false
-       }
+
+            // TODO: do you need to update startX & startY?
+
+        }
+        // TODO: make sure you are covering all states explicitely (no else at the end)
+
     }
     
     @objc func screenPanDetected(sender: UIPanGestureRecognizer) {
