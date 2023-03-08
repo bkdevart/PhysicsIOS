@@ -215,7 +215,7 @@ class GameScene: SKScene {
                     // drop new one if paint node selected (can't move paint nodes)
                     print("You are selecting a paint node and need to drop instead")
                     if controls.drop && !controls.removeOn && controls.usingCamGesture == false {
-                        let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue)
+                        let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
                         addChild(newNode)
                     } else if !controls.removeOn && controls.isPainting {
                         // TODO: update selected node so that paint node can be deleted
@@ -225,7 +225,7 @@ class GameScene: SKScene {
             } else {
                 // if no non-paint nodes are touched, then add new one
                 if controls.drop && !controls.removeOn && controls.usingCamGesture == false {
-                    let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue)
+                    let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
                     addChild(newNode)
                 }
                 controls.drop = true
@@ -253,7 +253,7 @@ class GameScene: SKScene {
                 } else {
                     // pour code
                     if controls.pourOn && controls.usingCamGesture == false {
-                        let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue)
+                        let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
                         addChild(newNode)
                     }
                 }
@@ -276,7 +276,7 @@ class GameScene: SKScene {
                     } else {
                         // paint
                         let location = touch.location(in: self)
-                        let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue)
+                        let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
                         addChild(newNode)
                     }
                 }
@@ -322,7 +322,7 @@ class GameScene: SKScene {
                     controls.selectedNode.removeFromParent()
                 }
             } else if controls.usingCamGesture == false {  // add paint node
-                let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue)
+                let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
                 addChild(newNode)
             }
         }

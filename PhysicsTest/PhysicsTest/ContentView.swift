@@ -68,12 +68,6 @@ import SwiftUI
 import CoreData
 import SpriteKit
 
-// TODO: move this to ObjectSettings file
-enum Shape: String, CaseIterable, Identifiable {
-    case rectangle, circle, triangle  // , pomegranite
-    var id: Self { self }
-}
-
 struct ContentView: View {
     @Environment(\.colorScheme) var currentMode
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass  // to get screenSize (iPad or iPhone)
@@ -84,6 +78,8 @@ struct ContentView: View {
     @State private var density = 1.0  // 1.0
     @State private var staticNode = false
     @State private var linearDamping = 0.1
+    @State private var letterText = "B"
+    @State private var letterFont = "Menlo"
     
     @AppStorage("LastRed") private var lastRed = 0.0
     @AppStorage("LastGreen") private var lastGreen = 0.43
@@ -280,12 +276,25 @@ struct ContentView: View {
                         // Shape choice and height/width selection
                         HStack {
                             VStack {
-                                Picker("Shape", selection: $selectedShape) {
-                                    Text("Rectangle").tag(Shape.rectangle)
-                                    Text("Circle").tag(Shape.circle)
-                                    Text("Triangle").tag(Shape.triangle)
+                                VStack {
+                                    Picker("Shape", selection: $selectedShape) {
+                                        Text("Rectangle").tag(Shape.rectangle)
+                                        Text("Circle").tag(Shape.circle)
+                                        Text("Triangle").tag(Shape.triangle)
+                                        Text("Text").tag(Shape.text)
+                                    }
+                                    .onChange(of: selectedShape, perform: shapeChanged)
+                                 
+                                    // Baskerville, Chalkduster, Courier, Didot, Menlo
+                                    Picker("Font", selection: $letterFont) {
+                                        Text("Baskerville").tag("Baskerville")
+                                        Text("Chalkduster").tag("Chalkduster")
+                                        Text("Courier").tag("Courier")
+                                        Text("Didot").tag("Didot")
+                                        Text("Menlo").tag("Menlo")
+                                    }
+                                    .onChange(of: letterFont, perform: fontChanged)
                                 }
-                                .onChange(of: selectedShape, perform: shapeChanged)
                                 
                                 HStack {
                                     Text("H")
@@ -350,6 +359,11 @@ struct ContentView: View {
                         
                         // Toggle buttons
                         HStack {
+                            TextField("B", text: $letterText)
+                                .frame(width: 20)
+                                .onSubmit({
+                                    controls.letterText = letterText
+                                })
                             // choose how to add/remove shapes to the physics environment
                             // && currentMode == .light
                             Toggle("Paint", isOn: $isPainting)
@@ -605,6 +619,11 @@ struct ContentView: View {
     
     private func shapeChanged(to newValue: Shape) {
         controls.selectedShape = newValue
+    }
+    
+    private func fontChanged(to newValue: String) {
+        controls.letterFont = newValue
+//        print(newValue)
     }
     
     private func addMethodChanged(to newValue: Bool) {

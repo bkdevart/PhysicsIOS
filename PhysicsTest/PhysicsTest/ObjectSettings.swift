@@ -9,6 +9,16 @@ import SwiftUI
 import SpriteKit
 import UniformTypeIdentifiers  // for svg
 
+enum Shape: String, CaseIterable, Identifiable {
+    case rectangle, circle, triangle, text  // , pomegranite
+    var id: Self { self }
+}
+
+enum Fonts: String, CaseIterable, Identifiable {
+    case Didot, Baskerville, Chalkduster, Courier, Menlo
+    var id: Self { self }
+}
+
 // using this to track box size and color selection across views
 class UIJoin: ObservableObject {
     @Published var selectedShape: Shape = .rectangle
@@ -33,6 +43,8 @@ class UIJoin: ObservableObject {
     @Published var usingCamGesture = false  // used to prevent shape drops, etc
     @Published var cameraOrigin = CGPoint(x: 0.0, y: 0.0)
     @Published var physicsEnvScale = 8.0  // this is multiplied by screen size
+    @Published var letterText = "B"  // used for text shape
+    @Published var letterFont = "Menlo"
     
     // TODO: capture state of entire scene - not codable, deconstruct
     @Published var gameScene = SKScene()
@@ -44,8 +56,10 @@ class UIJoin: ObservableObject {
     static var shared = UIJoin()
 }
 
+
+
 func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0,
-                lastRed: Double, lastGreen: Double, lastBlue: Double) -> SKNode {
+                lastRed: Double, lastGreen: Double, lastBlue: Double, letterText: String) -> SKNode {
     @ObservedObject var controls = UIJoin.shared
     
     // user can choose height and width
@@ -58,6 +72,26 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0,
     
     controls.selectedNode = SKNode()
     switch controls.selectedShape {
+    case .text:
+        // TODO: implement label and see if it works (needs return of node object)
+        let myText = SKLabelNode(fontNamed: controls.letterFont)
+        myText.text = letterText
+        myText.fontSize = CGFloat(boxWidth)  // 65, 20
+        myText.fontColor = UIColor(chosenColor)
+        myText.color = UIColor(red: 0, green: 0, blue: 0, alpha: 1)
+        myText.position = location
+        if hasPhysics {
+            myText.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: boxWidth, height: boxWidth))
+            // default density value is 1.0, anything higher is relative to this
+            myText.physicsBody?.density = controls.density
+            // TODO: figure out how to add in mass control while factoring in density
+            
+            // modify static/dynamic property based on toggle
+            myText.physicsBody?.isDynamic = !controls.staticNode
+            myText.physicsBody?.linearDamping = controls.linearDamping
+        }
+        return myText
+
     case .rectangle:
         let path = CGMutablePath()
         let box_half = Int(boxWidth) / 2
