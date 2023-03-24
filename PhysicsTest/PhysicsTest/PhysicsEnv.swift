@@ -294,7 +294,8 @@ class GameScene: SKScene {
         
         backgroundColor = UIColor(red: abs(lastRed - 1.0), green: abs(lastGreen - 1.0), blue: abs(lastBlue - 1.0), alpha: 0.5)
    
-        if controls.isPainting == false {
+        // non-paint node selection
+        if controls.isPainting == false && controls.selectedShape != .data {
             // TODO: see what you neeed to keep from this code after implementing drop (touchesEnded)
             let touchedNodes = nodes(at: location)
             controls.selectedNodes = touchedNodes
@@ -321,11 +322,21 @@ class GameScene: SKScene {
                     controls.selectedNode = selectedNode
                     controls.selectedNode.removeFromParent()
                 }
-            } else if controls.usingCamGesture == false {  // add paint node
+            } else if controls.usingCamGesture == false && controls.selectedShape != .data {  // add paint node
                 let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
                 addChild(newNode)
             }
         }
+        
+        // data drop
+        if controls.selectedShape == .data {
+            
+            let newNode = renderNode(location: location, hasPhysics: true, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
+            addChild(newNode)
+//            print(data)
+        }
+        
+        
         
         // this is needed to keep track of all children objects (shape nodes)
         controls.gameScene = self

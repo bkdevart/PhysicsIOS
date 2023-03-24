@@ -271,7 +271,6 @@ struct ContentView: View {
             NavigationView {
                 Group {
                     VStack {
-                        // TODO: find a way to use Geometry Reader to dynamically fit and keep correct ratio for boxes
                         // LayoutAndGeometry from 100 days of swiftui could be helpful
                         // Shape choice and height/width selection
                         HStack {
@@ -282,6 +281,7 @@ struct ContentView: View {
                                         Text("Circle").tag(Shape.circle)
                                         Text("Triangle").tag(Shape.triangle)
                                         Text("Text").tag(Shape.text)
+                                        Text("Data").tag(Shape.data)
                                     }
                                     .onChange(of: selectedShape, perform: shapeChanged)
                                  
@@ -619,6 +619,10 @@ struct ContentView: View {
     
     private func shapeChanged(to newValue: Shape) {
         controls.selectedShape = newValue
+        // TODO: if data, load data
+        if newValue == .data {
+            controls.loadData()
+        }
     }
     
     private func fontChanged(to newValue: String) {
