@@ -7,6 +7,35 @@
 
 import SwiftUI
 import SpriteKit
+import UniformTypeIdentifiers  // for svg
+//import Charts
+
+enum Shape: String, CaseIterable, Identifiable {
+    case rectangle, circle, triangle, text, data  // , pomegranite
+    var id: Self { self }
+}
+
+enum Fonts: String, CaseIterable, Identifiable {
+    case Didot, Baskerville, Chalkduster, Courier, Menlo
+    var id: Self { self }
+}
+
+struct Pima: Codable, Identifiable {
+    let id: Int
+    let Pregnancies: Float
+    let Glucose: Float
+    let BloodPressure: Float
+    let SkinThickness: Float
+    let Insulin: Float
+    let BMI: Float
+    let DiabetesPedigreeFunction: Float
+    let Age: Float
+    let Outcome: Float
+    
+    // TODO: see if you can get this formatted to 2 decimal places
+    var BMIString: String { BMI.formatted(.number) }
+    var GlucoseString: String { Glucose.formatted(.number) }
+}
 
 // using this to track box size and color selection across views
 class UIJoin: ObservableObject {
@@ -32,6 +61,8 @@ class UIJoin: ObservableObject {
     @Published var usingCamGesture = false  // used to prevent shape drops, etc
     @Published var cameraOrigin = CGPoint(x: 0.0, y: 0.0)
     @Published var physicsEnvScale = 8.0  // this is multiplied by screen size
+    @Published var letterText = "B"  // used for text shape
+    @Published var letterFont = "Menlo"
     
     // TODO: capture state of entire scene - not codable, deconstruct
     @Published var gameScene = SKScene()
@@ -39,12 +70,97 @@ class UIJoin: ObservableObject {
     
     // TODO: capture SwiftUI views in variable here (if possible)
 //    @Published var swiftUIViews = ContentView()
+    
+    @Published var pima = [Pima]()
+    @Published var filteredBMI = [Pima]()
+    @Published var filteredGlucose = [Pima]()
+    @Published var filteredTable = [Pima]()
+    
+    @Published var filterBMI = Float(75)  // Float()
+    @Published var filterGlucose = Float(200)  // Float()
+    
+    public func loadSingleRow() -> ([Pima], Float?) {
+        // modify this to just pick a single index for now
+        // TODO: create random number for index based off of length of data
+//        let singleRow = pima.randomElement()!
+        let dataSize = pima.count
+        let dataIndex = Int.random(in: 0...(dataSize - 1))
+        let maybeRow = pima[dataIndex]
+        let singleRow = pima.filter{ $0.id == Int.random(in: 0...(dataSize - 1)) } // , using: SystemRandomNumberGenerator()
+        // calculate min/max of glucose?
+//        let a: Float! = 0
+        let maxGlucoseValue = pima.max { $0.Glucose < $1.Glucose }?.Glucose
+        let minGlucoseValue = pima.min { $0.Glucose < $1.Glucose }?.Glucose
+        // TODO: change above code to create two arrays - one with original row and one with converted values for colors (float between 0-1)
+//        let glucoseRange = (a as Float?).map { $0 * Float(maxGlucoseValue) - Float(minGlucoseValue) }
+        let glucoseRange = Float(maxGlucoseValue! - minGlucoseValue!)
+//        let glucoseShade = singleRow[0].Glucose / glucoseRange
+        let glucoseShade = maybeRow.Glucose / glucoseRange
+        return (singleRow, glucoseShade)
+    }
+    
+    public func loadGlucoseFilter() {
+        // modify this to just pick a single index for now
+        filteredGlucose = pima.filter{ $0.id == 5 }
+    }
+    
+    public func loadData() {
+        if let localData = readLocalFile(forName: "diabetes") {
+            parse(jsonData: localData)
+            // TODO: set file to shared object
+            print("File found!")
+        } else {
+            print("File not found")
+        }
+    }
+    
+    // pull in JSON data
+    private func readLocalFile(forName name: String) -> Data? {
+        do {
+            if let bundlePath = Bundle.main.path(forResource: name,
+                                                 ofType: "json"),
+                let jsonData = try String(contentsOfFile: bundlePath).data(using: .utf8) {
+                return jsonData
+            }
+        } catch {
+            print(error)
+        }
+        
+        return nil
+    }
+
+    private func parse(jsonData: Data) {  // -> [Pima]
+        print("Parsing...")
+        do {
+            let decodedData = try JSONDecoder().decode([Pima].self,
+                                                       from: jsonData)
+            print("Pregancies[0]: ", decodedData[0].Pregnancies)
+            print("Outcome[0]: ", decodedData[0].Outcome)
+            print("===================================")
+            // TODO: push to shared object
+            self.pima = decodedData
+        } catch {
+            print("decode error")
+        }
+    }
 
     static var shared = UIJoin()
 }
 
+extension UIColor {
+    var rgba: (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        
+        return (red, green, blue, alpha)
+    }
+}
+
 func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0,
-                lastRed: Double, lastGreen: Double, lastBlue: Double) -> SKNode {
+                lastRed: Double, lastGreen: Double, lastBlue: Double, letterText: String) -> SKNode {
     @ObservedObject var controls = UIJoin.shared
     
     // user can choose height and width
@@ -57,6 +173,51 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0,
     
     controls.selectedNode = SKNode()
     switch controls.selectedShape {
+    case .data:
+        // TODO: read a row of data and convert first letter of each column to letter
+//        controls.loadData()
+        // select a single column/row of data from pima
+        let (data, glucoseShade) = controls.loadSingleRow()
+        // pull out glucose only
+        // calculate hue of color (use currently selected color?)
+        let myText = SKLabelNode(fontNamed: controls.letterFont)
+        myText.text = "G"  // \(glucose)
+        myText.fontSize = CGFloat(boxWidth)  // 65, 20
+        myText.fontColor = UIColor(red: UIColor(chosenColor).rgba.red, green: UIColor(chosenColor).rgba.green, blue: UIColor(chosenColor).rgba.blue, alpha: CGFloat(glucoseShade!))
+        myText.position = location
+        if hasPhysics {
+            // TODO: scale physics based on text length
+            myText.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: boxWidth, height: boxWidth))
+            // default density value is 1.0, anything higher is relative to this
+            myText.physicsBody?.density = controls.density
+            // TODO: figure out how to add in mass control while factoring in density
+            
+            // modify static/dynamic property based on toggle
+            myText.physicsBody?.isDynamic = !controls.staticNode
+            myText.physicsBody?.linearDamping = controls.linearDamping
+        }
+        return myText
+    case .text:
+        // uses label node to place text
+        let myText = SKLabelNode(fontNamed: controls.letterFont)
+        myText.text = letterText
+        myText.fontSize = CGFloat(boxWidth)  // 65, 20
+        myText.fontColor = UIColor(chosenColor)
+//        myText.color = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 1)  // 0, 0, 0
+        myText.position = location
+        if hasPhysics {
+            // TODO: scale physics based on text length
+            myText.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: boxWidth, height: boxWidth))
+            // default density value is 1.0, anything higher is relative to this
+            myText.physicsBody?.density = controls.density
+            // TODO: figure out how to add in mass control while factoring in density
+            
+            // modify static/dynamic property based on toggle
+            myText.physicsBody?.isDynamic = !controls.staticNode
+            myText.physicsBody?.linearDamping = controls.linearDamping
+        }
+        return myText
+
     case .rectangle:
         let path = CGMutablePath()
         let box_half = Int(boxWidth) / 2
@@ -122,6 +283,35 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0,
             triangle.physicsBody?.linearDamping = controls.linearDamping
         }
         return triangle
+        
+//    case .pomegranite:
+//        // TODO: import svg and convert to physics node
+////        guard camera != nil else {return}
+////        guard let svg = UTType("Pomegranate") else { return SKShapeNode()}
+//        guard let svg = UTType("Pomegranate") else { return SKShapeNode()}
+//        
+////        let svgImage = SVGKImage(contentsOf: svgFileURL)
+//
+//        for shapeNode in svg.shapes as! [CAShapeLayer] {
+//            let skShapeNode = SKShapeNode(path: shapeNode.path)
+//            skShapeNode.fillColor = shapeNode.fillColor
+//            skShapeNode.strokeColor = shapeNode.strokeColor
+//            skShapeNode.lineWidth = shapeNode.lineWidth
+//            scene.addChild(skShapeNode)
+//        }
+//        
+////        let fileData = try Data(contentsOf: svgFileURL)
+//        let fileUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
+//                                                             svgFileURL.pathExtension as NSString, nil)?.takeRetainedValue()
+//
+//        if UTTypeConformsTo(fileUTI!, kUTTypeScalableVectorGraphics) {
+//            // file is a valid SVG file
+//        } else {
+//            // file is not a valid SVG file
+//        }
+
+        
+//        return svg
     }
 }
 
@@ -133,26 +323,24 @@ struct ObjectSettings: View {
     @AppStorage("LastGreen") private var lastGreen = 0.43
     @AppStorage("LastBlue") private var lastBlue = 0.83
     
-//    @Binding var height: Double
-//    @Binding var width: Double
-//    @Binding var r: Double
-//    @Binding var g: Double
-//    @Binding var b: Double
-    
-    
     @ObservedObject var controls = UIJoin.shared
     
     var body: some View {
         Group {
-            Text("Current object values:")
-            Text("Object Height: \(controls.boxHeight)")
-            Text("Object Width: \(controls.boxWidth)")
-            Text("Screen Height: \(controls.screenHeight)")
-            Text("Screen Width: \(controls.screenWidth)")
+            Text("Stored values:")
+                .font(.headline)
+            Text("Times app started: \(timesAppLoaded)")
+            Text("Stored Red: \(lastRed)")
+            Text("Stored Green: \(lastGreen)")
+            Text("Stored Blue: \(lastBlue)")
         }
-        Text("Times app started: \(timesAppLoaded)")
-        Text("Stored Red: \(lastRed)")
-        Text("Stored Green: \(lastGreen)")
-        Text("Stored Blue: \(lastBlue)")
+        Spacer()
+        Text("Current object values:")
+            .font(.headline)
+        Text("Object Height: \(controls.boxHeight)")
+        Text("Object Width: \(controls.boxWidth)")
+        Text("Screen Height: \(controls.screenHeight)")
+        Text("Screen Width: \(controls.screenWidth)")
+        
     }
 }

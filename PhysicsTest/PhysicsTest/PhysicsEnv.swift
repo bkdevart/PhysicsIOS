@@ -22,6 +22,7 @@ class GameScene: SKScene {
     var startY = CGFloat()
     var cameraScale = CGFloat()
     
+    // info on gesture recognizers: https://developer.apple.com/documentation/uikit/uigesturerecognizer
     
     // TODO: create object to store physics environment state
 //    struct physicEnvStruct: Codable, Identifiable {
@@ -99,9 +100,9 @@ class GameScene: SKScene {
             camera?.setScale(newScale)
             controls.camera.xScale = newScale
             controls.usingCamGesture = false
-       }
-       else {
+       } else {
             // On cancellation, return the piece to its original location.
+           // TODO: is this causing camera reset?  - continue testing to verify
            camera?.setScale(cameraScale)
             controls.usingCamGesture = false
        }
@@ -112,30 +113,56 @@ class GameScene: SKScene {
         // handle the camera pan
         guard sender.view != nil else {return}
         guard camera != nil else {return}
-        let piece = sender.view!
+//        let piece = sender.view!
         
-        let translation = sender.translation(in: piece.superview)
+        // translation gives us the center point between two fingers touching for pan
+        let translation = sender.translation(in: sender.view!.superview)
+        // starting to pan, two fingers down
+        print(sender.state)
+        
         if sender.state == .began {
            // Retreive the camera's original position
             self.startX = controls.camera.position.x
             self.startY = controls.camera.position.y
             controls.usingCamGesture = true
         }
-        // Update the position for the .began, .changed, and .ended states
+        
+        // continuing to pan with fingers
+        if sender.state == .changed
+        {
+            // Add the X and Y translation to the view's original position.
+            camera?.position.x = self.startX - translation.x
+            camera?.position.y = self.startY + translation.y
+            controls.camera.position = camera!.position
+            controls.usingCamGesture = false
+        }
+                
+//        // lifting fingers from screen (end of pan)
+//        if sender.state == .ended {
+//            print("Ended")
+//            // On cancellation, return the piece to its original location.
+//            // TODO: not sure if this logic is needed (may cause view reset) - continue to test
+//            camera?.position.x = self.startX
+//            camera?.position.y = self.startY
+//            controls.camera.position = camera!.position
+//            controls.usingCamGesture = false
+//            // TODO: update startX & startY?
+//
+//        }
+        
+        // TODO: understand what .cancelled represents - may not belong to this gesture
         if sender.state != .cancelled {
             // Add the X and Y translation to the view's original position.
             camera?.position.x = self.startX - translation.x
             camera?.position.y = self.startY + translation.y
             controls.camera.position = camera!.position
             controls.usingCamGesture = false
-       }
-       else {
-            // On cancellation, return the piece to its original location.
-            camera?.position.x = self.startX
-            camera?.position.y = self.startY
-           controls.camera.position = camera!.position
-            controls.usingCamGesture = false
-       }
+
+            // TODO: do you need to update startX & startY?
+
+        }
+        // TODO: make sure you are covering all states explicitely (no else at the end)
+
     }
     
     @objc func screenPanDetected(sender: UIPanGestureRecognizer) {
@@ -146,6 +173,7 @@ class GameScene: SKScene {
         let translation = sender.translation(in: piece.superview)
            if sender.state == .began {
                // Save the view's original position.
+               // TODO: this might be causing unnesessary re-centering
                self.initialCenter = piece.center
            }
             // Update the position for the .began, .changed, and .ended states
@@ -187,30 +215,34 @@ class GameScene: SKScene {
                     // drop new one if paint node selected (can't move paint nodes)
                     print("You are selecting a paint node and need to drop instead")
                     if controls.drop && !controls.removeOn && controls.usingCamGesture == false {
-                        let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue)
+                        let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
                         addChild(newNode)
+                    } else if !controls.removeOn && controls.isPainting {
+                        // TODO: update selected node so that paint node can be deleted
+                        controls.selectedNode = touchedNodes[0]
                     }
                 }
             } else {
                 // if no non-paint nodes are touched, then add new one
                 if controls.drop && !controls.removeOn && controls.usingCamGesture == false {
-                    let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue)
+                    let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
                     addChild(newNode)
                 }
                 controls.drop = true
             }
         }
-        
         controls.gameScene = self
     }
     
     // drag
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         
+        // TODO: refactor this logic (too complex with new interface, jittery animation and bugs)
+        // dropping physics object
         if controls.isPainting == false {
             for touch in touches {
                 let location = touch.location(in: self)
-                // do drag code
+                // dragging physics node code
                 if controls.selectedNodes.count > 0 {
                     // check if it is a paint node
                     if controls.selectedNode.zPosition != -5 {
@@ -221,17 +253,32 @@ class GameScene: SKScene {
                 } else {
                     // pour code
                     if controls.pourOn && controls.usingCamGesture == false {
-                        let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue)
+                        let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
                         addChild(newNode)
                     }
                 }
             }
         } else {
+            // erasing painting, dragging paint
             if (controls.usingCamGesture == false) {
                 for touch in touches {
                     let location = touch.location(in: self)
-                    let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue)
-                    addChild(newNode)
+                    let touchedNodes = nodes(at: location)
+                    controls.selectedNodes = touchedNodes
+                    // check for eraser, remove paint
+                    if touchedNodes.count > 0 && controls.removeOn {
+                        // check if selectedNode is paint node
+                        if touchedNodes[0].zPosition == -5 {
+                            // log node and remove
+                            controls.selectedNode = touchedNodes[0]
+                            controls.selectedNode.removeFromParent()
+                        }
+                    } else {
+                        // paint
+                        let location = touch.location(in: self)
+                        let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
+                        addChild(newNode)
+                    }
                 }
             }
         }
@@ -247,7 +294,8 @@ class GameScene: SKScene {
         
         backgroundColor = UIColor(red: abs(lastRed - 1.0), green: abs(lastGreen - 1.0), blue: abs(lastBlue - 1.0), alpha: 0.5)
    
-        if controls.isPainting == false {
+        // non-paint node selection
+        if controls.isPainting == false && controls.selectedShape != .data {
             // TODO: see what you neeed to keep from this code after implementing drop (touchesEnded)
             let touchedNodes = nodes(at: location)
             controls.selectedNodes = touchedNodes
@@ -274,11 +322,21 @@ class GameScene: SKScene {
                     controls.selectedNode = selectedNode
                     controls.selectedNode.removeFromParent()
                 }
-            } else if controls.usingCamGesture == false {  // add paint node
-                let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue)
+            } else if controls.usingCamGesture == false && controls.selectedShape != .data {  // add paint node
+                let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
                 addChild(newNode)
             }
         }
+        
+        // data drop
+        if controls.selectedShape == .data {
+            
+            let newNode = renderNode(location: location, hasPhysics: true, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
+            addChild(newNode)
+//            print(data)
+        }
+        
+        
         
         // this is needed to keep track of all children objects (shape nodes)
         controls.gameScene = self

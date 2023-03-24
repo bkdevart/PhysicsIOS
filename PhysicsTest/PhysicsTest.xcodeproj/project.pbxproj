@@ -13,6 +13,9 @@
 		CA27B0A128FF6FD2007754FF /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CA27B0A028FF6FD2007754FF /* Preview Assets.xcassets */; };
 		CA27B0A328FF6FD2007754FF /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA27B0A228FF6FD2007754FF /* Persistence.swift */; };
 		CA27B0A628FF6FD2007754FF /* PhysicsTest.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = CA27B0A428FF6FD2007754FF /* PhysicsTest.xcdatamodeld */; };
+		CA30AE302986C75D0041E74B /* icon02.png in Resources */ = {isa = PBXBuildFile; fileRef = CA30AE2F2986C75D0041E74B /* icon02.png */; };
+		CA54D91629B3E8A2000C0C36 /* diabetes.json in Resources */ = {isa = PBXBuildFile; fileRef = CA54D91529B3E8A2000C0C36 /* diabetes.json */; };
+		CA59A0FF2989E6A6002B4237 /* Pomegranate.svg in Resources */ = {isa = PBXBuildFile; fileRef = CA59A0FE2989E6A6002B4237 /* Pomegranate.svg */; };
 		CA603415293F9B57009BEEFE /* PhysicsEnv.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA603414293F9B57009BEEFE /* PhysicsEnv.swift */; };
 		CACE7C4729089704008A3F07 /* ObjectSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE7C4629089704008A3F07 /* ObjectSettings.swift */; };
 		CACFF70B2982E5E2004CCC49 /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = CACFF70A2982E5E2004CCC49 /* icon.png */; };
@@ -26,6 +29,9 @@
 		CA27B0A028FF6FD2007754FF /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		CA27B0A228FF6FD2007754FF /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		CA27B0A528FF6FD2007754FF /* PhysicsTest.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = PhysicsTest.xcdatamodel; sourceTree = "<group>"; };
+		CA30AE2F2986C75D0041E74B /* icon02.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon02.png; sourceTree = "<group>"; };
+		CA54D91529B3E8A2000C0C36 /* diabetes.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = diabetes.json; sourceTree = "<group>"; };
+		CA59A0FE2989E6A6002B4237 /* Pomegranate.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = Pomegranate.svg; path = ../../Pomegranate.svg; sourceTree = "<group>"; };
 		CA603414293F9B57009BEEFE /* PhysicsEnv.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicsEnv.swift; sourceTree = "<group>"; };
 		CACE7C4629089704008A3F07 /* ObjectSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectSettings.swift; sourceTree = "<group>"; };
 		CACFF70A2982E5E2004CCC49 /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
@@ -61,11 +67,14 @@
 		CA27B09828FF6FD1007754FF /* PhysicsTest */ = {
 			isa = PBXGroup;
 			children = (
+				CA54D91529B3E8A2000C0C36 /* diabetes.json */,
 				CACE7C4629089704008A3F07 /* ObjectSettings.swift */,
+				CA59A0FE2989E6A6002B4237 /* Pomegranate.svg */,
 				CA27B09928FF6FD1007754FF /* PhysicsTestApp.swift */,
 				CA603414293F9B57009BEEFE /* PhysicsEnv.swift */,
 				CA27B09B28FF6FD1007754FF /* ContentView.swift */,
 				CA27B09D28FF6FD2007754FF /* Assets.xcassets */,
+				CA30AE2F2986C75D0041E74B /* icon02.png */,
 				CACFF70A2982E5E2004CCC49 /* icon.png */,
 				CA27B0A228FF6FD2007754FF /* Persistence.swift */,
 				CA27B0A428FF6FD2007754FF /* PhysicsTest.xcdatamodeld */,
@@ -140,9 +149,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA30AE302986C75D0041E74B /* icon02.png in Resources */,
 				CA27B0A128FF6FD2007754FF /* Preview Assets.xcassets in Resources */,
+				CA54D91629B3E8A2000C0C36 /* diabetes.json in Resources */,
 				CA27B09E28FF6FD2007754FF /* Assets.xcassets in Resources */,
 				CACFF70B2982E5E2004CCC49 /* icon.png in Resources */,
+				CA59A0FF2989E6A6002B4237 /* Pomegranate.svg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
