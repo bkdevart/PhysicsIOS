@@ -252,7 +252,12 @@ class GameScene: SKScene {
                     }
                 } else {
                     // pour code
-                    if controls.pourOn && controls.usingCamGesture == false {
+                    
+                    if controls.pourOn && controls.usingCamGesture == false && controls.selectedShape != .data {
+                        let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
+                        addChild(newNode)
+                    } // TODO: data selection is hitting here, put condition to handle different since it does a row at a time
+                    else if controls.pourOn && controls.usingCamGesture == false && controls.selectedShape == .data {
                         let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
                         addChild(newNode)
                     }
@@ -330,10 +335,43 @@ class GameScene: SKScene {
         
         // data drop
         if controls.selectedShape == .data {
+            // flow is different since it does a row at a time
+            let (data, scaleData) = controls.loadSingleRow()
+            // choose random color for row
+            let rowColor = Color(red: Double.random(in: 0.0...1.0), green: Double.random(in: 0.0...1.0), blue: Double.random(in: 0.0...1.0))
+
+            // TODO: create toggles for features
+            let idNode = createFeatureNode(text: "i", scale: Float(scaleData.id), chosenColor: rowColor, location: location, hasPhysics: true)
+            addChild(idNode)
+
+            let pregnanciesNode = createFeatureNode(text: "P", scale: scaleData.Pregnancies, chosenColor: rowColor, location: location, hasPhysics: true)
+            addChild(pregnanciesNode)
+
+            let glucoseNode = createFeatureNode(text: "G", scale: scaleData.Glucose, chosenColor: rowColor, location: location, hasPhysics: true)
+            addChild(glucoseNode)
+
+            let bloodPressureNode = createFeatureNode(text: "b", scale: scaleData.BloodPressure, chosenColor: rowColor, location: location, hasPhysics: true)
+            addChild(bloodPressureNode)
+
+            let skinThicknessNode = createFeatureNode(text: "S", scale: scaleData.SkinThickness, chosenColor: rowColor, location: location, hasPhysics: true)
+            addChild(skinThicknessNode)
+
+            let insulinNode = createFeatureNode(text: "I", scale: scaleData.Insulin, chosenColor: rowColor, location: location, hasPhysics: true)
+            addChild(insulinNode)
+
+            let BMINode = createFeatureNode(text: "B", scale: scaleData.BMI, chosenColor: rowColor, location: location, hasPhysics: true)
+            addChild(BMINode)
+
+            let diabetesPedigreeFunctionNode = createFeatureNode(text: "D", scale: scaleData.DiabetesPedigreeFunction, chosenColor: rowColor, location: location, hasPhysics: true)
+            addChild(diabetesPedigreeFunctionNode)
+
+            let ageNode = createFeatureNode(text: "A", scale: scaleData.Age, chosenColor: rowColor, location: location, hasPhysics: true)
+            addChild(ageNode)
+
+            let hasDiabetes = scaleData.Outcome == 1.0
             
-            let newNode = renderNode(location: location, hasPhysics: true, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
-            addChild(newNode)
-//            print(data)
+            let outcomeNode = createFeatureNode(text: hasDiabetes ? "☹︎" : "☻", scale: 1.0, chosenColor: rowColor, location: location, hasPhysics: true)
+            addChild(outcomeNode)
         }
         
         
