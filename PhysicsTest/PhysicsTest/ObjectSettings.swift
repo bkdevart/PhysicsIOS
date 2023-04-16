@@ -250,7 +250,9 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0,
     switch controls.selectedShape {
     case .data:
         // TODO: this is a hack to satisify requirement of returning node, it's handled in createFeatureNode function - fix
+        
         return SKNode()
+        
     case .text:
         // uses label node to place text
         let myText = SKLabelNode(fontNamed: controls.letterFont)
