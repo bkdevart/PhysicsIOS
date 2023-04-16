@@ -22,6 +22,14 @@ class GameScene: SKScene {
     var startY = CGFloat()
     var cameraScale = CGFloat()
     
+    enum JoinStyle: String {
+        case pin = "pin"
+        case spring = "spring"
+        case limit = "limit"
+        case fixed = "fixed"
+        case sliding = "sliding"
+    }
+    
     // info on gesture recognizers: https://developer.apple.com/documentation/uikit/uigesturerecognizer
     
     // TODO: create object to store physics environment state
@@ -335,6 +343,7 @@ class GameScene: SKScene {
         
         // data drop
         if controls.selectedShape == .data {
+            // TODO: move this to touch release so it works with other gestures
             // flow is different since it does a row at a time
             let (data, scaleData) = controls.loadSingleRow()
             // choose random color for row
@@ -346,76 +355,66 @@ class GameScene: SKScene {
 
             let pregnanciesNode = createFeatureNode(text: "P", scale: scaleData.Pregnancies, chosenColor: rowColor, location: location, hasPhysics: true)
             addChild(pregnanciesNode)
-            // TODO: figure out how to pin this to previous node
-//            let pinPosition = connectingRod.convert(pin.position,
-//                                                     to: scene)
-//            let pinJoint = SKPhysicsJointPin.joint(withBodyA: pin.physicsBody!,
-//                                                    bodyB: piston.physicsBody!,
-//                                                    anchor: pinPosition)
-//            scene.physicsWorld.add(pinJoint)
-            let idPosition = idNode.position
-            let idJoint = SKPhysicsJointPin.joint(withBodyA: idNode.physicsBody!, bodyB: pregnanciesNode.physicsBody!, anchor: idPosition)
-            self.physicsWorld.add(idJoint)
-            
+            pinJoinNodes(nodeA: idNode, nodeB: pregnanciesNode, kind: .sliding)
 
             let glucoseNode = createFeatureNode(text: "G", scale: scaleData.Glucose, chosenColor: rowColor, location: location, hasPhysics: true)
             addChild(glucoseNode)
-            
-            let pregnanciesPosition = pregnanciesNode.position
-            let glucoseJoint = SKPhysicsJointPin.joint(withBodyA: pregnanciesNode.physicsBody!, bodyB: glucoseNode.physicsBody!, anchor: pregnanciesPosition)
-            self.physicsWorld.add(glucoseJoint)
+            pinJoinNodes(nodeA: pregnanciesNode, nodeB: glucoseNode, kind: .sliding)
 
             let bloodPressureNode = createFeatureNode(text: "b", scale: scaleData.BloodPressure, chosenColor: rowColor, location: location, hasPhysics: true)
             addChild(bloodPressureNode)
-            
-            pinJoinNodes(nodeA: bloodPressureNode, nodeB: pregnanciesNode)
+            pinJoinNodes(nodeA: bloodPressureNode, nodeB: pregnanciesNode, kind: .sliding)
 
-//            let skinThicknessNode = createFeatureNode(text: "S", scale: scaleData.SkinThickness, chosenColor: rowColor, location: location, hasPhysics: true)
-//            addChild(skinThicknessNode)
-//
-//            let insulinNode = createFeatureNode(text: "I", scale: scaleData.Insulin, chosenColor: rowColor, location: location, hasPhysics: true)
-//            addChild(insulinNode)
-//
-//            let BMINode = createFeatureNode(text: "B", scale: scaleData.BMI, chosenColor: rowColor, location: location, hasPhysics: true)
-//            addChild(BMINode)
-//
-//            let diabetesPedigreeFunctionNode = createFeatureNode(text: "D", scale: scaleData.DiabetesPedigreeFunction, chosenColor: rowColor, location: location, hasPhysics: true)
-//            addChild(diabetesPedigreeFunctionNode)
-//
-//            let ageNode = createFeatureNode(text: "A", scale: scaleData.Age, chosenColor: rowColor, location: location, hasPhysics: true)
-//            addChild(ageNode)
+            let skinThicknessNode = createFeatureNode(text: "S", scale: scaleData.SkinThickness, chosenColor: rowColor, location: location, hasPhysics: true)
+            addChild(skinThicknessNode)
+            pinJoinNodes(nodeA: bloodPressureNode, nodeB: skinThicknessNode, kind: .sliding)
+
+            let insulinNode = createFeatureNode(text: "I", scale: scaleData.Insulin, chosenColor: rowColor, location: location, hasPhysics: true)
+            addChild(insulinNode)
+            pinJoinNodes(nodeA: skinThicknessNode, nodeB: insulinNode, kind: .sliding)
+            
+            let BMINode = createFeatureNode(text: "B", scale: scaleData.BMI, chosenColor: rowColor, location: location, hasPhysics: true)
+            addChild(BMINode)
+            pinJoinNodes(nodeA: insulinNode, nodeB: BMINode, kind: .sliding)
+            
+            let diabetesPedigreeFunctionNode = createFeatureNode(text: "D", scale: scaleData.DiabetesPedigreeFunction, chosenColor: rowColor, location: location, hasPhysics: true)
+            addChild(diabetesPedigreeFunctionNode)
+            pinJoinNodes(nodeA: BMINode, nodeB: diabetesPedigreeFunctionNode, kind: .sliding)
+            
+            let ageNode = createFeatureNode(text: "A", scale: scaleData.Age, chosenColor: rowColor, location: location, hasPhysics: true)
+            addChild(ageNode)
+            pinJoinNodes(nodeA: diabetesPedigreeFunctionNode, nodeB: ageNode, kind: .sliding)
 
             let hasDiabetes = scaleData.Outcome == 1.0
             
             let outcomeNode = createFeatureNode(text: hasDiabetes ? "☹︎" : "☻", scale: 1.0, chosenColor: rowColor, location: location, hasPhysics: true)
             addChild(outcomeNode)
-            
-            let outcomePosition = outcomeNode.position
-            // pin, spring, limit, fixed, sliding
-//            // pin
-//            let outcomeJoint = SKPhysicsJointPin.joint(withBodyA: outcomeNode.physicsBody!, bodyB: pregnanciesNode.physicsBody!, anchor: outcomePosition)
-            pinJoinNodes(nodeA: outcomeNode, nodeB: bloodPressureNode)
-//            // spring
-//            let outcomeJoint = SKPhysicsJointSpring.joint(withBodyA: outcomeNode.physicsBody!, bodyB: pregnanciesNode.physicsBody!, anchorA: outcomePosition, anchorB: pregnanciesNode.position)
-            // limit - can't get function call to work with A/B parameters
-//            // fixed
-//            let outcomeJoint = SKPhysicsJointFixed.joint(withBodyA: outcomeNode.physicsBody!, bodyB: pregnanciesNode.physicsBody!, anchor: outcomePosition)
-            // sliding
-//            let outcomeJoint = SKPhysicsJointSliding.joint(withBodyA: outcomeNode.physicsBody!, bodyB: pregnanciesNode.physicsBody!, anchor: outcomePosition, axis: CGVector(dx: 1.0, dy: 1.0))
-            
-//            self.physicsWorld.add(outcomeJoint)
-            
+            pinJoinNodes(nodeA: ageNode, nodeB: outcomeNode, kind: .sliding)
         }
-        
-        
-        
         // this is needed to keep track of all children objects (shape nodes)
         controls.gameScene = self
     }
     
-    func pinJoinNodes(nodeA: SKNode, nodeB: SKNode) {
-        let newJoint = SKPhysicsJointPin.joint(withBodyA: nodeA.physicsBody!, bodyB: nodeB.physicsBody!, anchor: nodeA.position)
-        self.physicsWorld.add(newJoint)
+    // TODO: implement case statement to look at kind parameter, implement joins
+    func pinJoinNodes(nodeA: SKNode, nodeB: SKNode, kind: JoinStyle) {
+        switch kind {
+        case .pin:
+            let newJoint = SKPhysicsJointPin.joint(withBodyA: nodeA.physicsBody!, bodyB: nodeB.physicsBody!, anchor: nodeA.position)
+            self.physicsWorld.add(newJoint)
+        case .spring:
+            let newJoint = SKPhysicsJointSpring.joint(withBodyA: nodeA.physicsBody!, bodyB: nodeB.physicsBody!, anchorA: nodeA.position, anchorB: nodeB.position)
+            self.physicsWorld.add(newJoint)
+        case .limit:
+            // TODO: figure out how to implement this properly
+            let newJoint = SKPhysicsJointPin.joint(withBodyA: nodeA.physicsBody!, bodyB: nodeB.physicsBody!, anchor: nodeA.position)
+            self.physicsWorld.add(newJoint)
+        case .fixed:
+            let newJoint = SKPhysicsJointFixed.joint(withBodyA: nodeA.physicsBody!, bodyB: nodeB.physicsBody!, anchor: nodeA.position)
+            self.physicsWorld.add(newJoint)
+        case .sliding:
+            let newJoint = SKPhysicsJointSliding.joint(withBodyA: nodeA.physicsBody!, bodyB: nodeB.physicsBody!, anchor: nodeA.position, axis: CGVector(dx: 1.0, dy: 1.0))
+            self.physicsWorld.add(newJoint)
+        }
+        
     }
-
 }
