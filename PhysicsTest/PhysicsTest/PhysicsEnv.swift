@@ -346,38 +346,76 @@ class GameScene: SKScene {
 
             let pregnanciesNode = createFeatureNode(text: "P", scale: scaleData.Pregnancies, chosenColor: rowColor, location: location, hasPhysics: true)
             addChild(pregnanciesNode)
+            // TODO: figure out how to pin this to previous node
+//            let pinPosition = connectingRod.convert(pin.position,
+//                                                     to: scene)
+//            let pinJoint = SKPhysicsJointPin.joint(withBodyA: pin.physicsBody!,
+//                                                    bodyB: piston.physicsBody!,
+//                                                    anchor: pinPosition)
+//            scene.physicsWorld.add(pinJoint)
+            let idPosition = idNode.position
+            let idJoint = SKPhysicsJointPin.joint(withBodyA: idNode.physicsBody!, bodyB: pregnanciesNode.physicsBody!, anchor: idPosition)
+            self.physicsWorld.add(idJoint)
+            
 
             let glucoseNode = createFeatureNode(text: "G", scale: scaleData.Glucose, chosenColor: rowColor, location: location, hasPhysics: true)
             addChild(glucoseNode)
+            
+            let pregnanciesPosition = pregnanciesNode.position
+            let glucoseJoint = SKPhysicsJointPin.joint(withBodyA: pregnanciesNode.physicsBody!, bodyB: glucoseNode.physicsBody!, anchor: pregnanciesPosition)
+            self.physicsWorld.add(glucoseJoint)
 
             let bloodPressureNode = createFeatureNode(text: "b", scale: scaleData.BloodPressure, chosenColor: rowColor, location: location, hasPhysics: true)
             addChild(bloodPressureNode)
+            
+            pinJoinNodes(nodeA: bloodPressureNode, nodeB: pregnanciesNode)
 
-            let skinThicknessNode = createFeatureNode(text: "S", scale: scaleData.SkinThickness, chosenColor: rowColor, location: location, hasPhysics: true)
-            addChild(skinThicknessNode)
-
-            let insulinNode = createFeatureNode(text: "I", scale: scaleData.Insulin, chosenColor: rowColor, location: location, hasPhysics: true)
-            addChild(insulinNode)
-
-            let BMINode = createFeatureNode(text: "B", scale: scaleData.BMI, chosenColor: rowColor, location: location, hasPhysics: true)
-            addChild(BMINode)
-
-            let diabetesPedigreeFunctionNode = createFeatureNode(text: "D", scale: scaleData.DiabetesPedigreeFunction, chosenColor: rowColor, location: location, hasPhysics: true)
-            addChild(diabetesPedigreeFunctionNode)
-
-            let ageNode = createFeatureNode(text: "A", scale: scaleData.Age, chosenColor: rowColor, location: location, hasPhysics: true)
-            addChild(ageNode)
+//            let skinThicknessNode = createFeatureNode(text: "S", scale: scaleData.SkinThickness, chosenColor: rowColor, location: location, hasPhysics: true)
+//            addChild(skinThicknessNode)
+//
+//            let insulinNode = createFeatureNode(text: "I", scale: scaleData.Insulin, chosenColor: rowColor, location: location, hasPhysics: true)
+//            addChild(insulinNode)
+//
+//            let BMINode = createFeatureNode(text: "B", scale: scaleData.BMI, chosenColor: rowColor, location: location, hasPhysics: true)
+//            addChild(BMINode)
+//
+//            let diabetesPedigreeFunctionNode = createFeatureNode(text: "D", scale: scaleData.DiabetesPedigreeFunction, chosenColor: rowColor, location: location, hasPhysics: true)
+//            addChild(diabetesPedigreeFunctionNode)
+//
+//            let ageNode = createFeatureNode(text: "A", scale: scaleData.Age, chosenColor: rowColor, location: location, hasPhysics: true)
+//            addChild(ageNode)
 
             let hasDiabetes = scaleData.Outcome == 1.0
             
             let outcomeNode = createFeatureNode(text: hasDiabetes ? "☹︎" : "☻", scale: 1.0, chosenColor: rowColor, location: location, hasPhysics: true)
             addChild(outcomeNode)
+            
+            let outcomePosition = outcomeNode.position
+            // pin, spring, limit, fixed, sliding
+//            // pin
+//            let outcomeJoint = SKPhysicsJointPin.joint(withBodyA: outcomeNode.physicsBody!, bodyB: pregnanciesNode.physicsBody!, anchor: outcomePosition)
+            pinJoinNodes(nodeA: outcomeNode, nodeB: bloodPressureNode)
+//            // spring
+//            let outcomeJoint = SKPhysicsJointSpring.joint(withBodyA: outcomeNode.physicsBody!, bodyB: pregnanciesNode.physicsBody!, anchorA: outcomePosition, anchorB: pregnanciesNode.position)
+            // limit - can't get function call to work with A/B parameters
+//            // fixed
+//            let outcomeJoint = SKPhysicsJointFixed.joint(withBodyA: outcomeNode.physicsBody!, bodyB: pregnanciesNode.physicsBody!, anchor: outcomePosition)
+            // sliding
+//            let outcomeJoint = SKPhysicsJointSliding.joint(withBodyA: outcomeNode.physicsBody!, bodyB: pregnanciesNode.physicsBody!, anchor: outcomePosition, axis: CGVector(dx: 1.0, dy: 1.0))
+            
+//            self.physicsWorld.add(outcomeJoint)
+            
         }
         
         
         
         // this is needed to keep track of all children objects (shape nodes)
         controls.gameScene = self
+    }
+    
+    func pinJoinNodes(nodeA: SKNode, nodeB: SKNode) {
+        let newJoint = SKPhysicsJointPin.joint(withBodyA: nodeA.physicsBody!, bodyB: nodeB.physicsBody!, anchor: nodeA.position)
+        self.physicsWorld.add(newJoint)
     }
 
 }
