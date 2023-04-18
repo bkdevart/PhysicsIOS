@@ -205,6 +205,124 @@ extension UIColor {
     }
 }
 
+// TODO: to understand physics body shapes and joins better, replace letters with shapes
+func createFeatureNodeShape(shape: Shape, scale: Float, chosenColor: Color, location: CGPoint, hasPhysics: Bool) -> SKShapeNode {
+    @ObservedObject var controls = UIJoin.shared
+    
+    // user can choose height and width
+    //  * Double(scale)
+    let boxWidth = Int(((controls.boxWidth) / 100.0) * Double(controls.scalePixels))
+    let boxHeight = Int(((controls.boxHeight) / 100.0) * Double(controls.scalePixels))
+    
+    switch shape {
+    case .data:
+        // TODO: this is a hack to satisify requirement of returning node, it's handled in createFeatureNode function - fix
+        
+        return SKShapeNode()
+        
+    case .text:
+        
+        return SKShapeNode()
+
+    case .rectangle:
+        // TODO: replace this with SKShapeNode code (try both circle and square)
+        let path = CGMutablePath()
+        let box_half = Int(boxWidth) / 2
+        path.move(to: CGPoint(x: -box_half, y: Int(boxHeight)))  // upper left corner
+        path.addLine(to: CGPoint(x: box_half, y: Int(boxHeight)))  // upper right corner
+        path.addLine(to: CGPoint(x: box_half, y: 0)) // bottom right corner
+        path.addLine(to: CGPoint(x: -box_half, y: 0))  // bottom left corner
+        let box = SKShapeNode(path: path)
+        box.fillColor = UIColor(red: UIColor(chosenColor).rgba.red, green: UIColor(chosenColor).rgba.green, blue: UIColor(chosenColor).rgba.blue, alpha: CGFloat(scale))
+        box.strokeColor = UIColor(chosenColor)
+        box.position = location
+        box.zPosition = CGFloat(0)
+        if hasPhysics {
+            box.physicsBody = SKPhysicsBody(polygonFrom: path)
+            // default density value is 1.0, anything higher is relative to this
+            box.physicsBody?.density = controls.density
+            // TODO: figure out how to add in mass control while factoring in density
+            
+            // modify static/dynamic property based on toggle
+            box.physicsBody?.isDynamic = !controls.staticNode
+            box.physicsBody?.linearDamping = controls.linearDamping
+        }
+        return box
+
+    case .circle:
+        let path = CGMutablePath()
+        path.addArc(center: CGPoint.zero,
+                    radius: CGFloat(Int(boxWidth) / 2),
+                    startAngle: 0,
+                    endAngle: CGFloat.pi * 2,
+                    clockwise: true)
+        let ball = SKShapeNode(path: path)
+        ball.fillColor = UIColor(red: UIColor(chosenColor).rgba.red, green: UIColor(chosenColor).rgba.green, blue: UIColor(chosenColor).rgba.blue, alpha: CGFloat(scale))
+        ball.strokeColor = UIColor(chosenColor)
+        ball.position = location
+        ball.zPosition = CGFloat(0)
+        if hasPhysics {
+            ball.physicsBody = SKPhysicsBody(polygonFrom: path)
+            ball.physicsBody?.density = controls.density
+            ball.physicsBody?.isDynamic = !controls.staticNode
+            ball.physicsBody?.linearDamping = controls.linearDamping
+        }
+        return ball
+
+    case .triangle:
+        let path = CGMutablePath()
+        // TODO: for different triangles try two side lengths and an angle, infer 3rd size
+        // center shape around x=0
+        let triangle_half = Int(boxWidth) / 2
+        path.move(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // triangle top
+        path.addLine(to: CGPoint(x: triangle_half, y: 0))  // bottom right corner
+        path.addLine(to: CGPoint(x: -triangle_half, y: 0))  // bottom left corner
+        path.addLine(to: CGPoint(x: 0, y: Int((0.5 * (3.0.squareRoot() * Double(boxWidth))))))  // back to triangle top (not needed)
+        let triangle = SKShapeNode(path: path)
+        triangle.fillColor = UIColor(red: UIColor(chosenColor).rgba.red, green: UIColor(chosenColor).rgba.green, blue: UIColor(chosenColor).rgba.blue, alpha: CGFloat(scale))
+        triangle.strokeColor = UIColor(chosenColor)
+        triangle.position = location
+        triangle.zPosition = CGFloat(0)
+        if hasPhysics {
+            triangle.physicsBody = SKPhysicsBody(polygonFrom: path)
+            triangle.physicsBody?.density = controls.density
+            triangle.physicsBody?.isDynamic = !controls.staticNode
+            triangle.physicsBody?.linearDamping = controls.linearDamping
+        }
+        return triangle
+        
+//    case .pomegranite:
+//        // TODO: import svg and convert to physics node
+////        guard camera != nil else {return}
+////        guard let svg = UTType("Pomegranate") else { return SKShapeNode()}
+//        guard let svg = UTType("Pomegranate") else { return SKShapeNode()}
+//
+////        let svgImage = SVGKImage(contentsOf: svgFileURL)
+//
+//        for shapeNode in svg.shapes as! [CAShapeLayer] {
+//            let skShapeNode = SKShapeNode(path: shapeNode.path)
+//            skShapeNode.fillColor = shapeNode.fillColor
+//            skShapeNode.strokeColor = shapeNode.strokeColor
+//            skShapeNode.lineWidth = shapeNode.lineWidth
+//            scene.addChild(skShapeNode)
+//        }
+//
+////        let fileData = try Data(contentsOf: svgFileURL)
+//        let fileUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
+//                                                             svgFileURL.pathExtension as NSString, nil)?.takeRetainedValue()
+//
+//        if UTTypeConformsTo(fileUTI!, kUTTypeScalableVectorGraphics) {
+//            // file is a valid SVG file
+//        } else {
+//            // file is not a valid SVG file
+//        }
+
+        
+//        return svg
+    }
+    
+}
+
 func createFeatureNode(text: String, scale: Float, chosenColor: Color, location: CGPoint, hasPhysics: Bool) -> SKLabelNode {
     @ObservedObject var controls = UIJoin.shared
     
@@ -213,16 +331,22 @@ func createFeatureNode(text: String, scale: Float, chosenColor: Color, location:
     let myText = SKLabelNode(fontNamed: controls.letterFont)
     myText.text = text
     if text == "☹︎" || text == "☻" {
-        myText.fontSize = CGFloat(boxWidth * 2)  // 65, 20
+        myText.fontSize = CGFloat(boxWidth * 2)  // * 2
     } else {
-        myText.fontSize = CGFloat(boxWidth)  // 65, 20
+        myText.fontSize = CGFloat(boxWidth)
     }
     
     myText.fontColor = UIColor(red: UIColor(chosenColor).rgba.red, green: UIColor(chosenColor).rgba.green, blue: UIColor(chosenColor).rgba.blue, alpha: CGFloat(scale))
     myText.position = location
     if hasPhysics {
         // TODO: scale physics based on text length
-        myText.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: boxWidth, height: boxWidth))
+//        myText.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: myText.frame.width, height: myText.frame.height))
+        myText.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(myText.frame.width / 2))
+        
+//        myText.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(boxWidth), center: location)
+
+//        myText.physicsBody = SKPhysicsBody(texture: myText.frame,
+//                                           size: myText.texture!.size())
         // default density value is 1.0, anything higher is relative to this
         myText.physicsBody?.density = controls.density
         // TODO: figure out how to add in mass control while factoring in density
@@ -263,7 +387,8 @@ func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0,
         myText.position = location
         if hasPhysics {
             // TODO: scale physics based on text length
-            myText.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: boxWidth, height: boxWidth))
+//            myText.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: boxWidth, height: boxWidth))
+            myText.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: myText.frame.width, height: myText.frame.height))
             // default density value is 1.0, anything higher is relative to this
             myText.physicsBody?.density = controls.density
             // TODO: figure out how to add in mass control while factoring in density
