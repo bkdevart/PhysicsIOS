@@ -233,8 +233,13 @@ class GameScene: SKScene {
             } else {
                 // if no non-paint nodes are touched, then add new one
                 if controls.drop && !controls.removeOn && controls.usingCamGesture == false {
-                    let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
-                    addChild(newNode)
+                    if controls.selectedShape == .data {
+                        renderRow(location: location, kind: .limit)
+//                        renderRowShape(shape: .rectangle, location: location, kind: .limit)
+                    } else {
+                        let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
+                        addChild(newNode)
+                    }
                 }
                 controls.drop = true
             }
@@ -308,7 +313,8 @@ class GameScene: SKScene {
         backgroundColor = UIColor(red: abs(lastRed - 1.0), green: abs(lastGreen - 1.0), blue: abs(lastBlue - 1.0), alpha: 0.5)
    
         // non-paint node selection
-        if controls.isPainting == false && controls.selectedShape != .data {
+        // TODO: re-evaluate if you want to exclude data here (need to move data code)
+        if controls.isPainting == false {  // && controls.selectedShape != .data
             // TODO: see what you neeed to keep from this code after implementing drop (touchesEnded)
             let touchedNodes = nodes(at: location)
             controls.selectedNodes = touchedNodes
@@ -338,12 +344,12 @@ class GameScene: SKScene {
             } else if controls.usingCamGesture == false && controls.selectedShape != .data {  // add paint node
                 let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
                 addChild(newNode)
-            } else if controls.selectedShape == .data {
+            } // else if controls.usingCamGesture == false && controls.selectedShape == .data {
                 // data drop
 //                renderRow(location: location, kind: .limit)
-                renderRowShape(shape: Shape.circle, location: location, kind: .limit)
+//                renderRowShape(shape: Shape.circle, location: location, kind: .limit)
 //                renderPersonShape(shape: Shape.circle, location: location, kind: .limit)
-            }
+//            }
         }
         
         // this is needed to keep track of all children objects (shape nodes)
@@ -407,8 +413,15 @@ class GameScene: SKScene {
         let rowColor = Color(red: Double.random(in: 0.0...1.0), green: Double.random(in: 0.0...1.0), blue: Double.random(in: 0.0...1.0))
 
         // TODO: create toggles for features
+        let hasDiabetes = scaleData.Outcome == 1.0
+        
+        let outcomeNode = createFeatureNodeShape(shape: shape, scale: 1.0, chosenColor: rowColor, location: location, hasPhysics: true)
+        addChild(outcomeNode)
+        
         let idNode = createFeatureNodeShape(shape: shape, scale: Float(scaleData.id), chosenColor: rowColor, location: location, hasPhysics: true)
         addChild(idNode)
+        // TODO: temporarily trying head on sliding (it pops off)
+        pinJoinNodes(nodeA: outcomeNode, nodeB: idNode, kind: .sliding)
 
         let pregnanciesNode = createFeatureNodeShape(shape: shape, scale: scaleData.Pregnancies, chosenColor: rowColor, location: location, hasPhysics: true)
         addChild(pregnanciesNode)
@@ -442,12 +455,8 @@ class GameScene: SKScene {
         addChild(ageNode)
         pinJoinNodes(nodeA: diabetesPedigreeFunctionNode, nodeB: ageNode, kind: kind)
 
-        let hasDiabetes = scaleData.Outcome == 1.0
         
-        let outcomeNode = createFeatureNodeShape(shape: shape, scale: 1.0, chosenColor: rowColor, location: location, hasPhysics: true)
-        addChild(outcomeNode)
-        // TODO: temporarily trying head on sliding (it pops off)
-        pinJoinNodes(nodeA: ageNode, nodeB: outcomeNode, kind: .sliding)
+//        pinJoinNodes(nodeA: ageNode, nodeB: outcomeNode, kind: .sliding)
     }
     
     func renderRow(location: CGPoint, kind: JoinStyle) {

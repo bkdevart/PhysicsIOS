@@ -341,7 +341,7 @@ func createFeatureNode(text: String, scale: Float, chosenColor: Color, location:
     if hasPhysics {
         // TODO: scale physics based on text length
 //        myText.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: myText.frame.width, height: myText.frame.height))
-        myText.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(myText.frame.width / 2))
+        myText.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(myText.frame.width / 1.5))
         
 //        myText.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(boxWidth), center: location)
 
