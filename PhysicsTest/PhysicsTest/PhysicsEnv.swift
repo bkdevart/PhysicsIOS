@@ -342,11 +342,62 @@ class GameScene: SKScene {
                 // data drop
 //                renderRow(location: location, kind: .limit)
                 renderRowShape(shape: Shape.circle, location: location, kind: .limit)
+//                renderPersonShape(shape: Shape.circle, location: location, kind: .limit)
             }
         }
         
         // this is needed to keep track of all children objects (shape nodes)
         controls.gameScene = self
+    }
+    // TODO: create renderPersonShape() and try making a stick figure
+    func renderPersonShape(shape: Shape, location: CGPoint, kind: JoinStyle) {
+        // flow is different since it does a row at a time
+        let (data, scaleData) = controls.loadSingleRow()
+        // choose random color for row
+        let rowColor = Color(red: Double.random(in: 0.0...1.0), green: Double.random(in: 0.0...1.0), blue: Double.random(in: 0.0...1.0))
+
+        // TODO: may need to use this to properly render shapes for outcome
+        let hasDiabetes = scaleData.Outcome == 1.0
+        
+        let outcomeNode = createFeatureNodeShape(shape: shape, scale: 1.0, chosenColor: rowColor, location: location, hasPhysics: true)
+        addChild(outcomeNode)
+        
+        let idNode = createFeatureNodeShape(shape: shape, scale: Float(scaleData.id), chosenColor: rowColor, location: location, hasPhysics: true)
+        addChild(idNode)
+        // TODO: temporarily trying head on sliding (it pops off)
+        pinJoinNodes(nodeA: outcomeNode, nodeB: idNode, kind: .sliding)
+
+        let pregnanciesNode = createFeatureNodeShape(shape: shape, scale: scaleData.Pregnancies, chosenColor: rowColor, location: location, hasPhysics: true)
+        addChild(pregnanciesNode)
+        pinJoinNodes(nodeA: idNode, nodeB: pregnanciesNode, kind: kind)
+
+        let glucoseNode = createFeatureNodeShape(shape: shape, scale: scaleData.Glucose, chosenColor: rowColor, location: location, hasPhysics: true)
+        addChild(glucoseNode)
+        pinJoinNodes(nodeA: pregnanciesNode, nodeB: glucoseNode, kind: kind)
+
+        let bloodPressureNode = createFeatureNodeShape(shape: shape, scale: scaleData.BloodPressure, chosenColor: rowColor, location: location, hasPhysics: true)
+        addChild(bloodPressureNode)
+        pinJoinNodes(nodeA: idNode, nodeB: bloodPressureNode, kind: kind)
+
+        let skinThicknessNode = createFeatureNodeShape(shape: shape, scale: scaleData.SkinThickness, chosenColor: rowColor, location: location, hasPhysics: true)
+        addChild(skinThicknessNode)
+        pinJoinNodes(nodeA: bloodPressureNode, nodeB: skinThicknessNode, kind: kind)
+
+        let insulinNode = createFeatureNodeShape(shape: shape, scale: scaleData.Insulin, chosenColor: rowColor, location: location, hasPhysics: true)
+        addChild(insulinNode)
+        pinJoinNodes(nodeA: skinThicknessNode, nodeB: insulinNode, kind: kind)
+
+        let BMINode = createFeatureNodeShape(shape: shape, scale: scaleData.BMI, chosenColor: rowColor, location: location, hasPhysics: true)
+        addChild(BMINode)
+        pinJoinNodes(nodeA: insulinNode, nodeB: BMINode, kind: kind)
+
+        let diabetesPedigreeFunctionNode = createFeatureNodeShape(shape: shape, scale: scaleData.DiabetesPedigreeFunction, chosenColor: rowColor, location: location, hasPhysics: true)
+        addChild(diabetesPedigreeFunctionNode)
+        pinJoinNodes(nodeA: BMINode, nodeB: diabetesPedigreeFunctionNode, kind: kind)
+
+        let ageNode = createFeatureNodeShape(shape: shape, scale: scaleData.Age, chosenColor: rowColor, location: location, hasPhysics: true)
+        addChild(ageNode)
+        pinJoinNodes(nodeA: diabetesPedigreeFunctionNode, nodeB: ageNode, kind: kind)
     }
     
     func renderRowShape(shape: Shape, location: CGPoint, kind: JoinStyle) {
@@ -369,7 +420,7 @@ class GameScene: SKScene {
 
         let bloodPressureNode = createFeatureNodeShape(shape: shape, scale: scaleData.BloodPressure, chosenColor: rowColor, location: location, hasPhysics: true)
         addChild(bloodPressureNode)
-        pinJoinNodes(nodeA: bloodPressureNode, nodeB: pregnanciesNode, kind: kind)
+        pinJoinNodes(nodeA: glucoseNode, nodeB: bloodPressureNode, kind: kind)
 
         let skinThicknessNode = createFeatureNodeShape(shape: shape, scale: scaleData.SkinThickness, chosenColor: rowColor, location: location, hasPhysics: true)
         addChild(skinThicknessNode)
@@ -419,7 +470,7 @@ class GameScene: SKScene {
 
         let bloodPressureNode = createFeatureNode(text: "b", scale: scaleData.BloodPressure, chosenColor: rowColor, location: location, hasPhysics: true)
         addChild(bloodPressureNode)
-        pinJoinNodes(nodeA: bloodPressureNode, nodeB: pregnanciesNode, kind: kind)
+        pinJoinNodes(nodeA: glucoseNode, nodeB: bloodPressureNode, kind: kind)
 
         let skinThicknessNode = createFeatureNode(text: "S", scale: scaleData.SkinThickness, chosenColor: rowColor, location: location, hasPhysics: true)
         addChild(skinThicknessNode)
