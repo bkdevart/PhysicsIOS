@@ -80,6 +80,21 @@ class UIJoin: ObservableObject {
     @Published var filterBMI = Float(75)  // Float()
     @Published var filterGlucose = Float(200)  // Float()
     
+    // game vars
+    @Published var playMode = false
+//    @Published var jump = false
+    @Published var lastNode = SKNode()
+    @Published var jumpStrength = 0.25
+    
+    public func jumpNodeRight() {
+        // applyImpulse
+        lastNode.physicsBody?.applyImpulse(CGVector(dx: 10 * jumpStrength, dy: 30 * jumpStrength))
+    }
+    
+    public func jumpNodeLeft() {
+        lastNode.physicsBody?.applyImpulse(CGVector(dx: -10 * jumpStrength, dy: 30 * jumpStrength))
+    }
+    
     public func loadSingleRow() -> (Pima, Pima) {
         // pick random row to return
         let dataSize = pima.count
@@ -339,14 +354,13 @@ func createFeatureNode(text: String, scale: Float, chosenColor: Color, location:
     myText.fontColor = UIColor(red: UIColor(chosenColor).rgba.red, green: UIColor(chosenColor).rgba.green, blue: UIColor(chosenColor).rgba.blue, alpha: CGFloat(scale))
     myText.position = location
     if hasPhysics {
-        // TODO: scale physics based on text length
-//        myText.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: myText.frame.width, height: myText.frame.height))
-        myText.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(myText.frame.width / 1.5))
-        
-//        myText.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(boxWidth), center: location)
-
-//        myText.physicsBody = SKPhysicsBody(texture: myText.frame,
-//                                           size: myText.texture!.size())
+        // because faces are doubled in size for appearance, physics body has to be halved
+        if text == "☹︎" || text == "☻" {
+            myText.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(myText.frame.width / 2))
+        } else {
+            //        myText.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: myText.frame.width, height: myText.frame.height))
+            myText.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(myText.frame.width))
+        }
         // default density value is 1.0, anything higher is relative to this
         myText.physicsBody?.density = controls.density
         // TODO: figure out how to add in mass control while factoring in density
