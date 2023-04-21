@@ -272,7 +272,6 @@ class GameScene: SKScene {
                     }
                 } else {
                     // pour code
-                    
                     if controls.pourOn && controls.usingCamGesture == false && controls.selectedShape != .data {
                         let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
                         addChild(newNode)
@@ -539,9 +538,6 @@ class GameScene: SKScene {
             let newAnchorY = nodeA.position.y + CGFloat(anchorY)
             let newAnchorPosition = CGPoint(x: newAnchorX, y: newAnchorY)  // nodeA.position
             let newJoint = SKPhysicsJointLimit.joint(withBodyA: nodeA.physicsBody!, bodyB: nodeB.physicsBody!, anchorA: newAnchorPosition, anchorB: nodeB.position)
-            print("-----")
-            print(nodeA.position)
-            print(nodeB.position)
             self.physicsWorld.add(newJoint)
         case .fixed:
             let newAnchorX = nodeA.position.x + CGFloat(anchorX)
