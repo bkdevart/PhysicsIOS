@@ -94,10 +94,22 @@ struct ContentView: View {
     @State public var pourOn = false
     @State public var isPainting = false
     @State public var cameraZoom = 1.0
+//    @State public var lastNodeSpeed = 0.0
     
     
     
     @GestureState var magnifyBy = 1.0
+    
+    struct PlayerStats: View {
+        let controls = UIJoin.shared
+        
+        var body: some View {
+//            Text(controls.lastNode.physicsBody?.area.formatted() ?? "0")
+//            Text(controls.lastNode.physicsBody?.angularVelocity.formatted() ?? "0")
+            Text("Stats: \(controls.lastNode.description)")
+//            Text(controls.lastNode.debugDescription)
+        }
+    }
     
     struct JumpButtons: View {
         @State public var jumpStrength = 0.25
@@ -139,7 +151,7 @@ struct ContentView: View {
         }
     }
     
-    // TODO: use this view to test out new ideas
+    // use this view to test out new ideas
     struct PlayView: View {
         @AppStorage("LastRed") private var lastRed = 0.0
         @AppStorage("LastGreen") private var lastGreen = 0.43
@@ -158,6 +170,7 @@ struct ContentView: View {
                 Group {
                     VStack {
                         PhysicsView()
+                        // TODO: add text display for node info
                         JumpButtons()
                     }
                 }
@@ -188,6 +201,7 @@ struct ContentView: View {
                         ToggleButtonRow()
                         PhysicsView()
                         JumpButtons()
+                        PlayerStats()
 //                        PhysicsSliders()
 //                        ClearInfoButtons()
                     }

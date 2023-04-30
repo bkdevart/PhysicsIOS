@@ -30,6 +30,32 @@ class GameScene: SKScene {
         case sliding = "sliding"
     }
     
+    let shockWaveAction: SKAction = {
+        let growAndFadeAction = SKAction.group([SKAction.scale(to: 50, duration: 0.5),
+                                                SKAction.fadeOut(withDuration: 0.5)])
+        
+        let sequence = SKAction.sequence([growAndFadeAction,
+                                          SKAction.removeFromParent()])
+        
+        return sequence
+    }()
+
+    func didBegin(_ contact: SKPhysicsContact) {
+//        &&
+//            contact.bodyA.node?.name == "ball" &&
+//            contact.bodyB.node?.name == "ball"
+        print("Collision!")
+        if contact.collisionImpulse > 5 {
+            
+            let shockwave = SKShapeNode(circleOfRadius: 1)
+
+            shockwave.position = contact.contactPoint
+            addChild(shockwave)
+            
+            shockwave.run(shockWaveAction)
+        }
+    }
+    
     // info on gesture recognizers: https://developer.apple.com/documentation/uikit/uigesturerecognizer
     
     // TODO: create object to store physics environment state
@@ -226,7 +252,7 @@ class GameScene: SKScene {
                     print("You are selecting a paint node and need to drop instead")
                     if controls.drop && !controls.removeOn && controls.usingCamGesture == false {
                         let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
-                        addChild(newNode)
+                        addChild(newNode)  // did this use to activate before colision?
                         controls.lastNode = newNode
                     } else if !controls.removeOn && controls.isPainting {
                         // TODO: update selected node so that paint node can be deleted

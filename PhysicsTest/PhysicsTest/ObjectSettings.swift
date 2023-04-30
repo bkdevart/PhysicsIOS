@@ -82,17 +82,31 @@ class UIJoin: ObservableObject {
     
     // game vars
     @Published var playMode = false
-//    @Published var jump = false
     @Published var lastNode = SKNode()
     @Published var jumpStrength = 0.25
+    @Published var lastNodeSpeed = 0.0
+//    {
+//        willSet(newLastNodeSpeed) {
+//            print("Current speed: \(lastNodeSpeed)")
+//            print("About to set speed: \(newLastNodeSpeed)")
+//        }
+//        didSet {
+//            if lastNodeSpeed > oldValue  {
+//                print("Added \(lastNodeSpeed - oldValue) steps")
+//            }
+//        }
+//    }
     
     public func jumpNodeRight() {
         // applyImpulse
         lastNode.physicsBody?.applyImpulse(CGVector(dx: 10 * jumpStrength, dy: 30 * jumpStrength))
+        lastNodeSpeed = lastNode.speed
+        
     }
     
     public func jumpNodeLeft() {
         lastNode.physicsBody?.applyImpulse(CGVector(dx: -10 * jumpStrength, dy: 30 * jumpStrength))
+        lastNodeSpeed = lastNode.speed
     }
     
     public func loadSingleRow() -> (Pima, Pima) {
