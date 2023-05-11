@@ -106,7 +106,7 @@ struct ContentView: View {
         var body: some View {
 //            Text(controls.lastNode.physicsBody?.area.formatted() ?? "0")
 //            Text(controls.lastNode.physicsBody?.angularVelocity.formatted() ?? "0")
-            Text("Stats: \(controls.lastNode.description)")
+            Text("Stats: \(controls.lastNode.speed)")
 //            Text(controls.lastNode.debugDescription)
         }
     }

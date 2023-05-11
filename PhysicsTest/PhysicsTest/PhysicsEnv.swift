@@ -69,6 +69,18 @@ class GameScene: SKScene {
     
     // TODO:  override the scene’s didChangeSize(_:) method, which is called whenever the scene changes size. When this method is called, you should update the scene’s contents to match the new size.
     override func didChangeSize(_ oldSize: CGSize) {
+        /**
+         # summary
+         This function could be used to detect changes in the size of the app window and perform some actions accordingly (such as adjusting the layout of the app's UI).
+         ## detail
+         This is an "override" function in Swift, which means that it is replacing a default function that is called when a certain event occurs in the app. In this case, it is replacing the "didChangeSize" function, which is called when the size of the app's window changes.
+
+         The function takes in an argument called "oldSize" which is of type CGSize. This argument represents the size of the app window before it was changed.
+
+         In the body of the function, there are two lines of code that are currently commented out. These lines would increment a counter and print out a message indicating that the screen size has changed and the number of times it has changed.
+
+         The final line of code prints out a message with the current size of the window.
+         */
         // a number here to track (useful for debug for now)
 //        controls.screenSizeChangeCount += 1
 //        print("Screen changed \(controls.screenSizeChangeCount) times!")
@@ -77,6 +89,13 @@ class GameScene: SKScene {
     
     // when the scene is presented by the view, didMove activates and triggers the physics engine environment
     override func didMove(to view: SKView) {
+        /**
+         # summary
+         This is Swift code that overrides the method didMove(to view: SKView) in an SKScene subclass. It initializes the physics environment for the scene and sets up various gesture recognizers for the view.
+         
+         ## detail
+         Specifically, it sets the physics body for the scene to be an edge loop with a certain size and a camera origin at the center. It also adds gesture recognizers for pinch zooming the camera, panning the camera, and moving the scene on the screen with three fingers. Lastly, it increments a variable timesAppLoaded to keep track of how many times the app has been loaded.
+        */
         // initialize physics environment
 //        let defaults = UserDefaults.standard
         timesAppLoaded += 1
@@ -119,6 +138,19 @@ class GameScene: SKScene {
 //    }
     
     @objc func pinchDetected(sender: UIPinchGestureRecognizer) {
+        /**
+         # summary
+         This code seems to define a function named pinchDetected that handles a pinch gesture using UIPinchGestureRecognizer. The function updates the view's position based on the user's gesture.
+         
+         ## detail
+         When the user starts pinching, the current position of the camera is saved, and the controls are marked as usingCamGesture.
+
+         When the gesture is not cancelled, the scaling value of the camera is updated using the sender.scale property, and the cameraScale property is multiplied by 1 divided by the scale value. Additionally, the usingCamGesture property is set to false.
+
+         If the gesture is cancelled, the camera scale is set back to the previous state, and usingCamGesture is also set to false.
+
+         There is a TODO comment in the code that asks whether the camera reset is causing any issues, and future testing is suggested to verify this.
+         */
         // handle the pinch using scale value
         guard camera != nil else {return}
 
@@ -144,6 +176,21 @@ class GameScene: SKScene {
     
     // https://developer.apple.com/documentation/uikit/touches_presses_and_gestures/handling_uikit_gestures/handling_pan_gestures
     @objc func panDetected(sender: UIPanGestureRecognizer) {
+        /**
+         # summary
+         This Swift programming code handles the camera pan gesture in an iOS app. It listens for UIPanGestureRecognizer events, which are generated when the user touches and drags on the screen.
+         
+         ## detail
+         First, the code checks whether there is a valid view and camera to work with. Then, it calculates the translation of the gesture, which determines how much the camera should move in each direction based on the movement of the user's fingers.
+
+         If the gesture is in the .began state, it records the starting position of the camera so that it can be moved relative to that position as the gesture progresses. It also sets a flag indicating that the gesture is currently being used to control the camera.
+
+         If the gesture is in the .changed state, it updates the position of the camera based on the current translation and the starting position. It then sets the camera's new position and updates the flag to indicate that the gesture is no longer being used to control the camera.
+
+         The code also includes commented-out logic for dealing with the .ended and .cancelled states, but it looks like this logic is still in development and may not be necessary for the final app.
+
+         Finally, it includes TODO comments to remind the developer about tasks that still need to be completed or understood.
+         */
         // handle the camera pan
         guard sender.view != nil else {return}
         guard camera != nil else {return}
@@ -200,7 +247,14 @@ class GameScene: SKScene {
     }
     
     @objc func screenPanDetected(sender: UIPanGestureRecognizer) {
-        // this code moves the entire view as 3 finger gesture
+        /**
+         # summary
+         This function allows a user to move a view around the screen with a three-finger gesture
+         ## detail
+         This code defines a function called "screenPanDetected" that handles the gesture of a user panning across the screen with multiple fingers. Specifically, if the gesture starts, the function saves the initial center of the view (which is being touched by the user, hence "sender.view"), and calculates the new center based on the translation (movement) of the view since the beginning of the gesture. If the gesture was not cancelled, the view is updated to the new center. If the gesture is cancelled (e.g. if the user stops touching the screen), the view is returned to its original location.
+         ## joke
+         But don't worry, if you tried to move a view with just two fingers, the code won't be fooled and won't work (that's its biggest joke, by the way).
+         */
         guard sender.view != nil else {return}
         let piece = sender.view!
         
@@ -224,6 +278,15 @@ class GameScene: SKScene {
 
     // release
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        /**
+         # summary
+         It is an override function that is called when the user ends touching the screen.
+
+         ## detail
+         The code first retrieves the location of the touch and identifies the nodes that are present on that location. If the controls are not in painting mode, it checks if any non-paint nodes are touched, and it sets the selected node to the first touched node. It also checks if the touched node is a paint node or not. If it's not a paint node, it prepares the node for drag motion, and if "removeOn" property is set, it removes the node. If it is a paint node, it allows the user to drop a new node if it's OK to do so. If no non-paint nodes are touched, it creates a new node according to the control settings and adds it as a child node. Finally, the game scene is set to the controls game scene.
+
+         The code also contains some TODOs for future implementation and debugging prints which will help in identifying any issues.
+         */
         // using this to release physics objects (instead of start of touch event)
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
@@ -282,7 +345,17 @@ class GameScene: SKScene {
     
     // drag
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        
+        /**
+         # summary
+         This Swift programming code is about handling touch events, specifically touchesMoved and touchesBegan events.
+         
+         ## detail
+         In the touchesMoved function, the code is checking if the user is painting. If not, the code is checking if any physics node has been dragged and updating its position. If the user is painting, the code is trying to detect if the user is using the eraser or adding paint to the canvas.
+
+         In the touchesBegan function, the code is checking if the user is selecting any non-paint node by tapping on it. If so, the node is logged for drag motion. If the user is painting, the code is checking if the user is using the eraser or adding paint to the canvas by tapping on it. Finally, the code is updating the controls structure and keeping track of all children objects (shape nodes).
+
+         The code also contains several TODO comments that suggest there are some improvements that need to be made in the code logic. The code also uses some physics and node rendering functions that are not shown here.
+         */
         // TODO: refactor this logic (too complex with new interface, jittery animation and bugs)
         // dropping physics object
         if controls.isPainting == false {
@@ -341,7 +414,17 @@ class GameScene: SKScene {
  
     // tap
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        
+        /**
+         # summary
+         This code is defining a function that is called whenever a touch is detected on a certain view in a Swift iOS app.
+         
+         ## description
+         The function first checks which part of the screen was touched and then changes the background color of the view.
+         
+         Next, there is a conditional statement that checks whether or not painting is currently enabled in the app. If painting is not enabled, the function will execute code that allows the user to select non-paint nodes in the app. If painting is enabled, the function will execute code that allows the user to draw or remove paint nodes on the app.
+
+         There are some comments throughout the code that suggest that there are more features that will be added or improvements that could be made in the future.
+         */
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
         
@@ -388,6 +471,17 @@ class GameScene: SKScene {
     }
     // TODO: create renderFigShape() and try making a stick figure
     func renderFigShape(shape: Shape, location: CGPoint, kind: JoinStyle) {
+        /**
+         # summary
+         This code defines a function that takes in a "shape" object, a 2D point for location, and a "JoinStyle" variable "kind".
+         
+         ## description
+         Within the function, it loads a single row of data, chooses a random color for the row, and creates two feature nodes, which are added to the scene as child nodes.
+
+         The two nodes are then joined together using a "spring" joint, and the last node created is stored in a property called "lastNode".
+
+         The rest of the code appears to be commented out for now, meaning it is not currently being executed. It looks like it creates more feature nodes and uses various types of joints to connect them together.
+         */
         // flow is different since it does a row at a time
         let (data, scaleData) = controls.loadSingleRow()
         // choose random color for row
@@ -437,6 +531,13 @@ class GameScene: SKScene {
     }
     
     func renderRowShape(shape: Shape, location: CGPoint, kind: JoinStyle) {
+        /**
+         # summary
+         This is a function in Swift programming that renders a row of nodes, each representing a feature of a diabetes dataset.
+         
+         ## description
+         The function starts by loading a row of data, choosing a random color for the row, and creating a node for the outcome feature (whether or not the person has diabetes) with a specific color and location. It then creates nodes for each of the other features in the row (ID, pregnancies, glucose level, blood pressure, skin thickness, insulin level, BMI, diabetes pedigree function, and age) and pins them to the previous node using a specific kind of joint. Finally, the last node of the row is set as the lastNode property of the controls object.
+         */
         // flow is different since it does a row at a time
         let (data, scaleData) = controls.loadSingleRow()
         // choose random color for row
@@ -489,6 +590,17 @@ class GameScene: SKScene {
     }
     
     func renderRow(location: CGPoint, kind: JoinStyle) {
+        /**
+         # summary
+         This Swift code creates a function called renderRow that renders a row of data.
+         
+         ## description
+         The function loads a single row of data and chooses a random color for it. It then creates different nodes using a custom function called createFeatureNode, which takes in the chosen color, the location where the node will be placed, and some other parameters. The feature nodes created are for pregnancy, glucose, blood pressure, skin thickness, insulin, BMI, diabetes pedigree function, and age.
+
+         pinJoinNodes is another custom function that creates a physics joint between two nodes; this function is used to create a connection between the feature nodes. Finally, the function creates an outcome node that is either a smiley or a frowny face depending on if the patient has diabetes.
+
+         There are some TODO comments in the code that suggest some parts of it are temporary and may need further development or customization. Overall, this code appears to be part of a larger project related to diabetes data analysis and visualization.
+         */
         // flow is different since it does a row at a time
         let (data, scaleData) = controls.loadSingleRow()
         // choose random color for row
@@ -541,6 +653,18 @@ class GameScene: SKScene {
     }
     
     func pinJoinNodes(nodeA: SKNode, nodeB: SKNode, kind: JoinStyle, anchorX: Float=0.0, anchorY: Float=0.0) {
+        /**
+         # summary
+         This is a Swift function that creates various types of physics joints between two SKNodes.
+         
+         ## description
+         The function takes in two SKNodes, a JoinStyle enum that specifies the type of joint to create, and optional Float values for setting the anchor position.
+
+         Inside the function, there is a switch statement that determines which type of joint to create based on the provided JoinStyle enum. The function then calculates the anchor positions for each joint and creates the appropriate SKPhysicsJoint object using the attributes of the SKNodes. Finally, the joint is added to the physics world to apply the desired physics behavior between the two nodes. Depending on the type of joint, there are some TODOs that still need to be implemented. Overall, this function is used to add physics interactions between two SKNodes in a game or simulation.
+         
+         ## joke
+         As a joke, did you hear about the programmer who was afraid of negative numbers? They’ll stop at nothing to avoid them!
+         */
         switch kind {
         case .pin:
             let newAnchorX = nodeA.position.x + CGFloat(anchorX)
