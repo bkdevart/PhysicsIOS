@@ -19,6 +19,7 @@
 		CA603415293F9B57009BEEFE /* PhysicsEnv.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA603414293F9B57009BEEFE /* PhysicsEnv.swift */; };
 		CACE7C4729089704008A3F07 /* ObjectSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE7C4629089704008A3F07 /* ObjectSettings.swift */; };
 		CACFF70B2982E5E2004CCC49 /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = CACFF70A2982E5E2004CCC49 /* icon.png */; };
+		CAE494892AB1E62900A4E492 /* readme.md in Resources */ = {isa = PBXBuildFile; fileRef = CAE494882AB1E62900A4E492 /* readme.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +36,7 @@
 		CA603414293F9B57009BEEFE /* PhysicsEnv.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicsEnv.swift; sourceTree = "<group>"; };
 		CACE7C4629089704008A3F07 /* ObjectSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectSettings.swift; sourceTree = "<group>"; };
 		CACFF70A2982E5E2004CCC49 /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
+		CAE494882AB1E62900A4E492 /* readme.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = readme.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,6 +81,7 @@
 				CA27B0A228FF6FD2007754FF /* Persistence.swift */,
 				CA27B0A428FF6FD2007754FF /* PhysicsTest.xcdatamodeld */,
 				CA27B09F28FF6FD2007754FF /* Preview Content */,
+				CAE494882AB1E62900A4E492 /* readme.md */,
 			);
 			path = PhysicsTest;
 			sourceTree = "<group>";
@@ -153,6 +156,7 @@
 				CA27B0A128FF6FD2007754FF /* Preview Assets.xcassets in Resources */,
 				CA54D91629B3E8A2000C0C36 /* diabetes.json in Resources */,
 				CA27B09E28FF6FD2007754FF /* Assets.xcassets in Resources */,
+				CAE494892AB1E62900A4E492 /* readme.md in Resources */,
 				CACFF70B2982E5E2004CCC49 /* icon.png in Resources */,
 				CA59A0FF2989E6A6002B4237 /* Pomegranate.svg in Resources */,
 			);
