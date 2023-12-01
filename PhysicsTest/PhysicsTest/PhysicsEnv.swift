@@ -268,70 +268,71 @@ class GameScene: SKScene {
 
     // release
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        /**
-         # summary
-         It is an override function that is called when the user ends touching the screen.
-
-         ## detail
-         The code first retrieves the location of the touch and identifies the nodes that are present on that location. If the controls are not in painting mode, it checks if any non-paint nodes are touched, and it sets the selected node to the first touched node. It also checks if the touched node is a paint node or not. If it's not a paint node, it prepares the node for drag motion, and if "removeOn" property is set, it removes the node. If it is a paint node, it allows the user to drop a new node if it's OK to do so. If no non-paint nodes are touched, it creates a new node according to the control settings and adds it as a child node. Finally, the game scene is set to the controls game scene.
-
-         The code also contains some TODOs for future implementation and debugging prints which will help in identifying any issues.
-         */
-        // using this to release physics objects (instead of start of touch event)
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
         let touchedNodes = nodes(at: location)
         
-        if controls.isPainting == false {
-            controls.selectedNodes = touchedNodes
-            // will crash here if no nodes are touched
-            if touchedNodes.count > 0 {
-                // check if selectedNode is paint node
-                if touchedNodes[0].zPosition != -5 {
-                    // log node so that drag motion works
-                    controls.selectedNode = touchedNodes[0]
-                    // put in lastNode as well for jump controls
-                    controls.lastNode = touchedNodes[0]
-                    // turn drop switch off
-                    controls.drop = false
-                    // if removeOn is set, clear node
-                    if controls.removeOn {
-                        // TODO: see which conditions this runs (breakpoint doesn't always trigger when toggling, clicking)
-                        print(controls.selectedNode)
-                        controls.selectedNode.removeFromParent()
-                    }
-                } else {
-                    // drop new one if paint node selected (can't move paint nodes)
-                    print("You are selecting a paint node and need to drop instead")
-                    if controls.drop && !controls.removeOn && controls.usingCamGesture == false {
-                        let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
-                        addChild(newNode)  // did this use to activate before colision?
-                        controls.lastNode = newNode
-                    } else if !controls.removeOn && controls.isPainting {
-                        // TODO: update selected node so that paint node can be deleted
-                        controls.selectedNode = touchedNodes[0]
-                    }
-                }
-            } else {
-                // if no non-paint nodes are touched, then add new one
-                if controls.drop && !controls.removeOn && controls.usingCamGesture == false {
-                    if controls.selectedShape == .data {
-                        renderRow(location: location, kind: .limit)
-                    }
-                    else if controls.playMode {
-//                        renderRowShape(shape: .circle, location: location, kind: .limit)
-                        renderFigShape(shape: .circle, location: location, kind: .pin)
-                    } else {
-                        let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
-                        addChild(newNode)
-                        controls.lastNode = newNode
-                    }
-                }
-                controls.drop = true
-            }
+        if !controls.isPainting {
+            handleNonPaintingTouchesEnded(touchedNodes, location)
+        } else {
+            handlePaintingTouchesEnded(touchedNodes, location)
         }
+        
         controls.gameScene = self
     }
+
+    func handleNonPaintingTouchesEnded(_ touchedNodes: [SKNode], _ location: CGPoint) {
+        controls.selectedNodes = touchedNodes
+        
+        guard let selectedNode = touchedNodes.first else {
+            controls.drop = true
+            // don't drop if erasing
+            if !controls.removeOn {
+                let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
+                addChild(newNode)
+                controls.lastNode = newNode
+            }
+            return
+        }
+        
+        if selectedNode.zPosition != -5 {
+            handleNonPaintNodeSelectedEnded(selectedNode)
+        } else {
+            handlePaintNodeSelectedEnded(selectedNode, location)
+        }
+    }
+
+    func handleNonPaintNodeSelectedEnded(_ selectedNode: SKNode) {
+        controls.selectedNode = selectedNode
+        controls.lastNode = selectedNode
+        controls.drop = false
+        
+        if controls.removeOn {
+            selectedNode.removeFromParent()
+        }
+    }
+
+    func handlePaintNodeSelectedEnded(_ selectedNode: SKNode, _ location: CGPoint) {
+        print("You are selecting a paint node and need to drop instead")
+        
+        if controls.drop && !controls.removeOn && !controls.usingCamGesture {
+            if controls.isPainting {
+                controls.selectedNode = selectedNode
+            } else {
+                let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
+                addChild(newNode)
+                controls.lastNode = newNode
+            }
+        }
+    }
+
+    func handlePaintingTouchesEnded(_ touchedNodes: [SKNode], _ location: CGPoint) {
+        // Handle painting touches based on the painting logic
+        // TODO: Add the appropriate logic for painting touches
+    }
+
+    // TODO: Add any additional helper methods or handle specific cases as needed
+
     
     /*
      
