@@ -196,74 +196,42 @@ class GameScene: SKScene {
     
     // https://developer.apple.com/documentation/uikit/touches_presses_and_gestures/handling_uikit_gestures/handling_pan_gestures
     @objc func panDetected(sender: UIPanGestureRecognizer) {
-        /**
-         # summary
-         This Swift programming code handles the camera pan gesture in an iOS app. It listens for UIPanGestureRecognizer events, which are generated when the user touches and drags on the screen.
-         
-         ## detail
-         First, the code checks whether there is a valid view and camera to work with. Then, it calculates the translation of the gesture, which determines how much the camera should move in each direction based on the movement of the user's fingers.
+        guard let view = sender.view else { return }
+        let translation = sender.translation(in: view.superview)
 
-         If the gesture is in the .began state, it records the starting position of the camera so that it can be moved relative to that position as the gesture progresses. It also sets a flag indicating that the gesture is currently being used to control the camera.
-
-         If the gesture is in the .changed state, it updates the position of the camera based on the current translation and the starting position. It then sets the camera's new position and updates the flag to indicate that the gesture is no longer being used to control the camera.
-
-         The code also includes commented-out logic for dealing with the .ended and .cancelled states, but it looks like this logic is still in development and may not be necessary for the final app.
-
-         Finally, it includes TODO comments to remind the developer about tasks that still need to be completed or understood.
-         */
-        // handle the camera pan
-        guard sender.view != nil else {return}
-        guard camera != nil else {return}
-//        let piece = sender.view!
-        
-        // translation gives us the center point between two fingers touching for pan
-        let translation = sender.translation(in: sender.view!.superview)
-        // starting to pan, two fingers down
-        print(sender.state)
-        
-        if sender.state == .began {
-           // Retreive the camera's original position
-            self.startX = controls.camera.position.x
-            self.startY = controls.camera.position.y
-            controls.usingCamGesture = true
+        switch sender.state {
+        case .began:
+            handlePanBegan(translation)
+        case .changed:
+            handlePanChanged(translation)
+        case .cancelled:
+            handlePanCancelled()
+        default:
+            break
         }
-        
-        // continuing to pan with fingers
-        if sender.state == .changed
-        {
-            // Add the X and Y translation to the view's original position.
-            camera?.position.x = self.startX - translation.x
-            camera?.position.y = self.startY + translation.y
-            controls.camera.position = camera!.position
-            controls.usingCamGesture = false
-        }
-                
-//        // lifting fingers from screen (end of pan)
-//        if sender.state == .ended {
-//            print("Ended")
-//            // On cancellation, return the piece to its original location.
-//            // TODO: not sure if this logic is needed (may cause view reset) - continue to test
-//            camera?.position.x = self.startX
-//            camera?.position.y = self.startY
-//            controls.camera.position = camera!.position
-//            controls.usingCamGesture = false
-//            // TODO: update startX & startY?
-//
-//        }
-        
-        // TODO: understand what .cancelled represents - may not belong to this gesture
-        if sender.state != .cancelled {
-            // Add the X and Y translation to the view's original position.
-            camera?.position.x = self.startX - translation.x
-            camera?.position.y = self.startY + translation.y
-            controls.camera.position = camera!.position
-            controls.usingCamGesture = false
+    }
 
-            // TODO: do you need to update startX & startY?
+    func handlePanBegan(_ translation: CGPoint) {
+        // Record the starting position of the camera for relative movement
+        startX = controls.camera.position.x
+        startY = controls.camera.position.y
+        controls.usingCamGesture = true
+    }
 
-        }
-        // TODO: make sure you are covering all states explicitely (no else at the end)
+    func handlePanChanged(_ translation: CGPoint) {
+        // Update the camera position based on the translation
+        camera?.position.x = startX - translation.x
+        camera?.position.y = startY + translation.y
+        controls.camera.position = camera!.position
+        controls.usingCamGesture = false
+    }
 
+    func handlePanCancelled() {
+        // Restore the camera position to its original state on pan cancellation
+        camera?.position.x = startX
+        camera?.position.y = startY
+        controls.camera.position = camera!.position
+        controls.usingCamGesture = false
     }
     
     @objc func screenPanDetected(sender: UIPanGestureRecognizer) {
