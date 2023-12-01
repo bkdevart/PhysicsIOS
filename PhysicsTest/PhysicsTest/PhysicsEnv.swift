@@ -150,28 +150,48 @@ class GameScene: SKScene {
          If the gesture is cancelled, the camera scale is set back to the previous state, and usingCamGesture is also set to false.
 
          There is a TODO comment in the code that asks whether the camera reset is causing any issues, and future testing is suggested to verify this.
+         
+         ## pinch functions
+         - handlePinchBegan
+         - handlePinchChanged
+         - handlePinchCancelled
          */
         // handle the pinch using scale value
-        guard camera != nil else {return}
 
-        if sender.state == .began {
-            // if controls aren't updated, view will snap back to old position
-            cameraScale = controls.camera.xScale
-            controls.usingCamGesture = true
+        switch sender.state {
+        case .began:
+            handlePinchBegan()
+        case .changed, .ended:
+            handlePinchChanged(sender)
+        case .cancelled:
+            handlePinchCancelled()
+        default:
+            break
         }
-        // Update the position for the .began, .changed, and .ended states
-        if sender.state != .cancelled {
-            // Add the X and Y translation to the view's original position.
-            let newScale = cameraScale * 1 / sender.scale
-            camera?.setScale(newScale)
-            controls.camera.xScale = newScale
-            controls.usingCamGesture = false
-       } else {
-            // On cancellation, return the piece to its original location.
-           // TODO: is this causing camera reset?  - continue testing to verify
-           camera?.setScale(cameraScale)
-            controls.usingCamGesture = false
-       }
+    }
+    
+    func handlePinchBegan() {
+        // Save the current camera scale for reference
+        cameraScale = controls.camera.xScale
+        controls.usingCamGesture = true
+    }
+
+    func handlePinchChanged(_ sender: UIPinchGestureRecognizer) {
+        guard let camera = camera else { return }
+
+        // Update the camera scale based on pinch gesture
+        let newScale = cameraScale * 1 / sender.scale
+        camera.setScale(newScale)
+        controls.camera.xScale = newScale
+        controls.usingCamGesture = false
+    }
+
+    func handlePinchCancelled() {
+        // Restore the camera scale to its previous state on pinch cancellation
+        guard let camera = camera else { return }
+        camera.setScale(cameraScale)
+        controls.usingCamGesture = false
+        // TODO: Is this causing camera reset? Continue testing to verify.
     }
     
     // https://developer.apple.com/documentation/uikit/touches_presses_and_gestures/handling_uikit_gestures/handling_pan_gestures
