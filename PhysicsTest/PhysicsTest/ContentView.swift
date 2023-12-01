@@ -5,21 +5,8 @@
 //  Created by Brandon Knox on 10/18/22.
 
 /*
- Features
- - Physics environment
-    - be able to pause environment at any time, then switch factors like gravity, friction, etc and see what happens
-    - be able to switch between many different environment parameters
-    - be able to save environment and load later
-        - can also be used to solve navigational issues when switching screens
- - Shapes
-    - make user-defined shapes
- - Interaction
-    - have mode that pauses physics/other interactions and allows you to place items locked in place
-    - (other mode) combine drag and pour methods into dynamic action
-        - if tapping a node, go into drag mode
-        - if not tapping a node, go into drop/pour mode based on if tap or drag motion
-        - have toggle mode for clearing nodes (on/off switch)
-        - add paint mode switch
+Planned Features
+
  
  Bugs
  - pan gesture - with pour on weird things happen
@@ -53,6 +40,20 @@
  - Adjust gravity based on tilt of phone
  - Add velocity direction to play with damping (applyForce & applyImpulse)
  - make new view, use pop up menu to put all controls in to free up screen
+ - Physics environment
+    - be able to pause environment at any time, then switch factors like gravity, friction, etc and see what happens
+    - be able to switch between many different environment parameters
+    - be able to save environment and load later
+        - can also be used to solve navigational issues when switching screens
+ - Shapes
+    - make user-defined shapes
+ - Interaction
+    - have mode that pauses physics/other interactions and allows you to place items locked in place
+    - (other mode) combine drag and pour methods into dynamic action
+        - if tapping a node, go into drag mode
+        - if not tapping a node, go into drop/pour mode based on if tap or drag motion
+        - have toggle mode for clearing nodes (on/off switch)
+        - add paint mode switch
  
  Game ideas
  - Quantum wall

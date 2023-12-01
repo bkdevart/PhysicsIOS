@@ -88,3 +88,8 @@ fastlane/test_output
 # https://github.com/johnno1962/injectionforxcode
 
 iOSInjectionProject/
+
+# Python
+python_data/__pycache__/
+python_data/config.py
+python_data/.ipynb_checkpoints/
