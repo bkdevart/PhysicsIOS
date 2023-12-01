@@ -235,33 +235,35 @@ class GameScene: SKScene {
     }
     
     @objc func screenPanDetected(sender: UIPanGestureRecognizer) {
-        /**
-         # summary
-         This function allows a user to move a view around the screen with a three-finger gesture
-         ## detail
-         This code defines a function called "screenPanDetected" that handles the gesture of a user panning across the screen with multiple fingers. Specifically, if the gesture starts, the function saves the initial center of the view (which is being touched by the user, hence "sender.view"), and calculates the new center based on the translation (movement) of the view since the beginning of the gesture. If the gesture was not cancelled, the view is updated to the new center. If the gesture is cancelled (e.g. if the user stops touching the screen), the view is returned to its original location.
-         ## joke
-         But don't worry, if you tried to move a view with just two fingers, the code won't be fooled and won't work (that's its biggest joke, by the way).
-         */
-        guard sender.view != nil else {return}
-        let piece = sender.view!
-        
-        let translation = sender.translation(in: piece.superview)
-           if sender.state == .began {
-               // Save the view's original position.
-               // TODO: this might be causing unnesessary re-centering
-               self.initialCenter = piece.center
-           }
-            // Update the position for the .began, .changed, and .ended states
-           if sender.state != .cancelled {
-              // Add the X and Y translation to the view's original position.
-              let newCenter = CGPoint(x: initialCenter.x + translation.x, y: initialCenter.y + translation.y)
-              piece.center = newCenter
-           }
-           else {
-              // On cancellation, return the piece to its original location.
-              piece.center = initialCenter
-           }
+        guard let view = sender.view else { return }
+
+        switch sender.state {
+        case .began:
+            handleScreenPanBegan(view, sender)
+        case .changed:
+            handleScreenPanChanged(view, sender)
+        case .cancelled:
+            handleScreenPanCancelled(view)
+        default:
+            break
+        }
+    }
+
+    func handleScreenPanBegan(_ view: UIView, _ sender: UIPanGestureRecognizer) {
+        // Save the view's original position.
+        initialCenter = view.center
+    }
+
+    func handleScreenPanChanged(_ view: UIView, _ sender: UIPanGestureRecognizer) {
+        let translation = sender.translation(in: view.superview)
+        // Update the view's position based on the translation.
+        let newCenter = CGPoint(x: initialCenter.x + translation.x, y: initialCenter.y + translation.y)
+        view.center = newCenter
+    }
+
+    func handleScreenPanCancelled(_ view: UIView) {
+        // On cancellation, return the view to its original location.
+        view.center = initialCenter
     }
 
     // release
