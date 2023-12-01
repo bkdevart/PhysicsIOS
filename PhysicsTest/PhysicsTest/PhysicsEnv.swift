@@ -343,7 +343,9 @@ class GameScene: SKScene {
         controls.gameScene = self
     }
     
-    // drag
+    /*
+     
+     */
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         /**
          # summary
@@ -351,65 +353,82 @@ class GameScene: SKScene {
          
          ## detail
          In the touchesMoved function, the code is checking if the user is painting. If not, the code is checking if any physics node has been dragged and updating its position. If the user is painting, the code is trying to detect if the user is using the eraser or adding paint to the canvas.
-
+         
          In the touchesBegan function, the code is checking if the user is selecting any non-paint node by tapping on it. If so, the node is logged for drag motion. If the user is painting, the code is checking if the user is using the eraser or adding paint to the canvas by tapping on it. Finally, the code is updating the controls structure and keeping track of all children objects (shape nodes).
-
+         
          The code also contains several TODO comments that suggest there are some improvements that need to be made in the code logic. The code also uses some physics and node rendering functions that are not shown here.
+         
+         ## drag functions
+                - touchesMoved
+            - handleDraggedNonPaintingTouches
+            - handleDraggedPhysicsNode
+            - handleDraggedPourCode
+            - handleDraggedPaintingTouches
+            - handleDraggedErasingPaint
+            - handleDraggedPainting
          */
-        // TODO: refactor this logic (too complex with new interface, jittery animation and bugs)
-        // dropping physics object
         if controls.isPainting == false {
+            handleDraggedNonPaintingTouches(touches)
+        } else {
+            handleDraggedPaintingTouches(touches)
+        }
+        controls.gameScene = self
+    }
+    
+    func handleDraggedNonPaintingTouches(_ touches: Set<UITouch>) {
+        for touch in touches {
+            let location = touch.location(in: self)
+            
+            if controls.selectedNodes.count > 0 {
+                handleDraggedPhysicsNode(location)
+            } else if controls.pourOn && !controls.usingCamGesture {
+                handleDraggedPourCode(location)
+            }
+        }
+    }
+
+    func handleDraggedPhysicsNode(_ location: CGPoint) {
+        if controls.selectedNode.zPosition != -5 {
+            controls.selectedNode.position = location
+            controls.drop = false
+        }
+    }
+
+    func handleDraggedPourCode(_ location: CGPoint) {
+        if controls.selectedShape != .data || controls.pourOn && !controls.usingCamGesture {
+            let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
+            addChild(newNode)
+            controls.lastNode = newNode
+        }
+    }
+
+    func handleDraggedPaintingTouches(_ touches: Set<UITouch>) {
+        if !controls.usingCamGesture {
             for touch in touches {
                 let location = touch.location(in: self)
-                // dragging physics node code
-                if controls.selectedNodes.count > 0 {
-                    // check if it is a paint node
-                    if controls.selectedNode.zPosition != -5 {
-                        // move with finger/mouse
-                        controls.selectedNode.position = location
-                        controls.drop = false
-                    }
+                let touchedNodes = nodes(at: location)
+                controls.selectedNodes = touchedNodes
+                
+                if touchedNodes.count > 0 && controls.removeOn {
+                    handleDraggedErasingPaint(touchedNodes)
                 } else {
-                    // pour code
-                    if controls.pourOn && controls.usingCamGesture == false && controls.selectedShape != .data {
-                        let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
-                        addChild(newNode)
-                        controls.lastNode = newNode
-                    } // TODO: data selection is hitting here, put condition to handle different since it does a row at a time
-                    else if controls.pourOn && controls.usingCamGesture == false && controls.selectedShape == .data {
-                        let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
-                        addChild(newNode)
-                        controls.lastNode = newNode
-                    }
-                }
-            }
-        } else {
-            // erasing painting, dragging paint
-            if (controls.usingCamGesture == false) {
-                for touch in touches {
-                    let location = touch.location(in: self)
-                    let touchedNodes = nodes(at: location)
-                    controls.selectedNodes = touchedNodes
-                    // check for eraser, remove paint
-                    if touchedNodes.count > 0 && controls.removeOn {
-                        // check if selectedNode is paint node
-                        if touchedNodes[0].zPosition == -5 {
-                            // log node and remove
-                            controls.selectedNode = touchedNodes[0]
-                            controls.selectedNode.removeFromParent()
-                        }
-                    } else {
-                        // paint
-                        let location = touch.location(in: self)
-                        let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
-                        addChild(newNode)
-                        controls.lastNode = newNode
-                    }
+                    handleDraggedPainting(location)
                 }
             }
         }
-        // this is needed to keep track of all children objects (shape nodes)
-        controls.gameScene = self
+    }
+
+    func handleDraggedErasingPaint(_ touchedNodes: [SKNode]) {
+        if touchedNodes[0].zPosition == -5 {
+            controls.selectedNode = touchedNodes[0]
+            controls.selectedNode.removeFromParent()
+        }
+    }
+
+    func handleDraggedPainting(_ location: CGPoint) {
+        let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
+        addChild(newNode)
+        controls.lastNode = newNode
     }
  
     // tap
