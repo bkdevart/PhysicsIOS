@@ -424,61 +424,67 @@ class GameScene: SKScene {
  
     // tap
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        /**
-         # summary
-         This code is defining a function that is called whenever a touch is detected on a certain view in a Swift iOS app.
-         
-         ## description
-         The function first checks which part of the screen was touched and then changes the background color of the view.
-         
-         Next, there is a conditional statement that checks whether or not painting is currently enabled in the app. If painting is not enabled, the function will execute code that allows the user to select non-paint nodes in the app. If painting is enabled, the function will execute code that allows the user to draw or remove paint nodes on the app.
-
-         There are some comments throughout the code that suggest that there are more features that will be added or improvements that could be made in the future.
-         */
         guard let touch = touches.first else { return }
+        
         let location = touch.location(in: self)
-        
-        backgroundColor = UIColor(red: abs(lastRed - 1.0), green: abs(lastGreen - 1.0), blue: abs(lastBlue - 1.0), alpha: 0.5)
-   
-        // non-paint node selection
-        // TODO: re-evaluate if you want to exclude data here (need to move data code)
-        if controls.isPainting == false {  // && controls.selectedShape != .data
-            // TODO: see what you neeed to keep from this code after implementing drop (touchesEnded)
-            let touchedNodes = nodes(at: location)
-            controls.selectedNodes = touchedNodes
-            // will crash here if no nodes are touched
-            if touchedNodes.count > 0 {
-                // check if selectedNode is paint node
-                if touchedNodes[0].zPosition != -5 {
-                    // log node so that drag motion works
-                    controls.selectedNode = touchedNodes[0]
-                    // if removeOn is set, clear node
-                    if controls.removeOn {
-                        controls.selectedNode.removeFromParent()
-                    }
-                }
-            }
-        } else {
-            // remove paint
-            let touchedNodes = nodes(at: location)
+        setBackgroundColor()
 
-            if touchedNodes.count > 0 {
-                let selectedNode = touchedNodes[0]
-                controls.selectedNodes = touchedNodes
-                if (Int(selectedNode.zPosition) == -5 && controls.removeOn) {
-                    controls.selectedNode = selectedNode
-                    controls.selectedNode.removeFromParent()
-                }
-            } else if controls.usingCamGesture == false && controls.selectedShape != .data {  // add paint node
-                let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
-                addChild(newNode)
-                controls.lastNode = newNode
-            }
+        if controls.isPainting {
+            handlePaintingTouchesBegan(at: location)
+        } else {
+            handleNonPaintingTouchesBegan(at: location)
         }
-        
-        // this is needed to keep track of all children objects (shape nodes)
+
         controls.gameScene = self
     }
+
+    func setBackgroundColor() {
+        backgroundColor = UIColor(red: abs(lastRed - 1.0), green: abs(lastGreen - 1.0), blue: abs(lastBlue - 1.0), alpha: 0.5)
+    }
+
+    func handleNonPaintingTouchesBegan(at location: CGPoint) {
+        let touchedNodes = nodes(at: location)
+        controls.selectedNodes = touchedNodes
+
+        guard touchedNodes.count > 0 else { return }
+
+        let selectedNode = touchedNodes[0]
+        if selectedNode.zPosition != -5 {
+            controls.selectedNode = selectedNode
+
+            if controls.removeOn {
+                controls.selectedNode.removeFromParent()
+            }
+        }
+    }
+
+    func handlePaintingTouchesBegan(at location: CGPoint) {
+        let touchedNodes = nodes(at: location)
+        controls.selectedNodes = touchedNodes
+
+        guard touchedNodes.count > 0 else {
+            handlePaintNodeAdditionBegan(at: location)
+            return
+        }
+
+        let selectedNode = touchedNodes[0]
+
+        if Int(selectedNode.zPosition) == -5, controls.removeOn {
+            controls.selectedNode = selectedNode
+            controls.selectedNode.removeFromParent()
+        } else if !controls.usingCamGesture, controls.selectedShape != .data {
+            handlePaintNodeAdditionBegan(at: location)
+        }
+    }
+
+    func handlePaintNodeAdditionBegan(at location: CGPoint) {
+        guard !controls.removeOn, !controls.usingCamGesture, controls.selectedShape != .data else { return }
+
+        let newNode = renderNode(location: location, hasPhysics: false, zPosition: -5, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
+        addChild(newNode)
+        controls.lastNode = newNode
+    }
+
     // TODO: create renderFigShape() and try making a stick figure
     func renderFigShape(shape: Shape, location: CGPoint, kind: JoinStyle) {
         /**
@@ -713,6 +719,5 @@ class GameScene: SKScene {
             let newJoint = SKPhysicsJointSliding.joint(withBodyA: nodeA.physicsBody!, bodyB: nodeB.physicsBody!, anchor: newAnchorPosition, axis: CGVector(dx: 1.0, dy: 1.0))
             self.physicsWorld.add(newJoint)
         }
-        
     }
 }
