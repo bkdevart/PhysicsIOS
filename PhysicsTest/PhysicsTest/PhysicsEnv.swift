@@ -124,7 +124,7 @@ class GameScene: SKScene {
         pan.maximumNumberOfTouches = 2
         view.addGestureRecognizer(pan)
         
-        // adding hidden 3 finger pan that moves scene on screen
+        // hidden easter egg: 3 finger pan that moves scene on screen
         let moveScreen = UIPanGestureRecognizer(target: self, action: #selector(GameScene.screenPanDetected(sender:)))
         moveScreen.minimumNumberOfTouches = 3
         moveScreen.maximumNumberOfTouches = 3
