@@ -48,6 +48,7 @@ class UIJoin: ObservableObject {
     @Published var isPainting = false
     @Published var selectedNode = SKNode()
     @Published var selectedNodes = [SKNode]()
+    @Published var nodeCount = 0
     @Published var removeOn = false
     @Published var paintLayer = 0
     @Published var pourOn = false
@@ -66,7 +67,7 @@ class UIJoin: ObservableObject {
     @Published var letterFont = "Menlo"
     
     // TODO: capture state of entire scene - not codable, deconstruct
-    @Published var gameScene = SKScene()
+    @Published var gameScene = SKScene(fileNamed: "physicsWorld")
     @Published var camera = SKCameraNode()
     
     // TODO: capture SwiftUI views in variable here (if possible)
@@ -262,7 +263,10 @@ func createFeatureNodeShape(shape: Shape, scale: Float, chosenColor: Color, loca
         path.addLine(to: CGPoint(x: box_half, y: 0)) // bottom right corner
         path.addLine(to: CGPoint(x: -box_half, y: 0))  // bottom left corner
         let box = SKShapeNode(path: path)
-        box.fillColor = UIColor(red: UIColor(chosenColor).rgba.red, green: UIColor(chosenColor).rgba.green, blue: UIColor(chosenColor).rgba.blue, alpha: CGFloat(scale))
+        box.fillColor = UIColor(red: UIColor(chosenColor).rgba.red, 
+                                green: UIColor(chosenColor).rgba.green,
+                                blue: UIColor(chosenColor).rgba.blue,
+                                alpha: CGFloat(scale))
         box.strokeColor = UIColor(chosenColor)
         box.position = location
         box.zPosition = CGFloat(0)
@@ -386,10 +390,16 @@ func createFeatureNode(text: String, scale: Float, chosenColor: Color, location:
     return myText
 }
 
-func renderNode(location: CGPoint, hasPhysics: Bool=false, zPosition: Int=0,
-                lastRed: Double, lastGreen: Double, lastBlue: Double, letterText: String) -> SKNode {
+func renderNode(location: CGPoint, 
+                hasPhysics: Bool=false,
+                zPosition: Int=0,
+                lastRed: Double, 
+                lastGreen: Double,
+                lastBlue: Double,
+                letterText: String) -> SKNode {
     @ObservedObject var controls = UIJoin.shared
     
+    controls.nodeCount += 1
     // user can choose height and width
     let boxWidth = Int((controls.boxWidth / 100.0) * Double(controls.scalePixels))
     let boxHeight = Int((controls.boxHeight / 100.0) * Double(controls.scalePixels))

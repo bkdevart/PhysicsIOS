@@ -17,9 +17,6 @@ Planned Features
  - Clear all can get stuck, when tapping screen after, clear catches up
  - Clear all removes camera node
  
- Icon
- - Green/Purple, redish-light-green (current color in simulator), blue/yellow
- 
  Interface ideas
  - anything delightful
  - create settings button to allow for different theme choices (complementary, etc)
@@ -107,7 +104,10 @@ struct ContentView: View {
         var body: some View {
 //            Text(controls.lastNode.physicsBody?.area.formatted() ?? "0")
 //            Text(controls.lastNode.physicsBody?.angularVelocity.formatted() ?? "0")
-            Text("Stats: \(controls.lastNode.speed)")
+            // TODO: change this to count of nodes in scene
+//            @Binding var nodeCount = controls.nodeCount
+            var nodeCount = controls.nodeCount
+            Text("Nodes: \(nodeCount)")
 //            Text(controls.lastNode.debugDescription)
         }
     }
@@ -217,7 +217,7 @@ struct ContentView: View {
         let controls = UIJoin.shared
         
         private func removeAll() {
-            controls.gameScene.removeAllChildren()
+            controls.gameScene?.removeAllChildren()
         }
         
         var body: some View {
@@ -287,6 +287,10 @@ struct ContentView: View {
         var scene: SKScene {
             // making this square helps with ratio issues when drawing shapes
             let scene = GameScene()
+//            guard let scene = GameScene(fileNamed: "physicsWorld") else {
+//                let scene = GameScene()
+//                return scene
+//            }
             // TODO: make sure dynamic sizing is working properly - not sure if this is used
             let maxHeight = controls.screenHeight  // 2532
             let maxWidth = controls.screenWidth  // 1170
