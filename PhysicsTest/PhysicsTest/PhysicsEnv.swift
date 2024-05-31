@@ -469,7 +469,6 @@ class GameScene: SKScene {
         let selectedNode = touchedNodes[0]
         if selectedNode.zPosition != -5 {
             controls.selectedNode = selectedNode
-
             if controls.removeOn {
                 controls.selectedNode.removeFromParent()
             }
