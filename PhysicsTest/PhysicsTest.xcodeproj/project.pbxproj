@@ -17,6 +17,7 @@
 		CA54D91629B3E8A2000C0C36 /* diabetes.json in Resources */ = {isa = PBXBuildFile; fileRef = CA54D91529B3E8A2000C0C36 /* diabetes.json */; };
 		CA59A0FF2989E6A6002B4237 /* Pomegranate.svg in Resources */ = {isa = PBXBuildFile; fileRef = CA59A0FE2989E6A6002B4237 /* Pomegranate.svg */; };
 		CA603415293F9B57009BEEFE /* PhysicsEnv.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA603414293F9B57009BEEFE /* PhysicsEnv.swift */; };
+		CABABC402B2146940071B39B /* TestScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = CABABC3F2B2146940071B39B /* TestScene.sks */; };
 		CACE7C4729089704008A3F07 /* ObjectSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACE7C4629089704008A3F07 /* ObjectSettings.swift */; };
 		CACFF70B2982E5E2004CCC49 /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = CACFF70A2982E5E2004CCC49 /* icon.png */; };
 /* End PBXBuildFile section */
@@ -33,6 +34,7 @@
 		CA54D91529B3E8A2000C0C36 /* diabetes.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = diabetes.json; sourceTree = "<group>"; };
 		CA59A0FE2989E6A6002B4237 /* Pomegranate.svg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = Pomegranate.svg; path = ../../Pomegranate.svg; sourceTree = "<group>"; };
 		CA603414293F9B57009BEEFE /* PhysicsEnv.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicsEnv.swift; sourceTree = "<group>"; };
+		CABABC3F2B2146940071B39B /* TestScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = TestScene.sks; sourceTree = "<group>"; };
 		CACE7C4629089704008A3F07 /* ObjectSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectSettings.swift; sourceTree = "<group>"; };
 		CACFF70A2982E5E2004CCC49 /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -72,6 +74,7 @@
 				CA59A0FE2989E6A6002B4237 /* Pomegranate.svg */,
 				CA27B09928FF6FD1007754FF /* PhysicsTestApp.swift */,
 				CA603414293F9B57009BEEFE /* PhysicsEnv.swift */,
+				CABABC3F2B2146940071B39B /* TestScene.sks */,
 				CA27B09B28FF6FD1007754FF /* ContentView.swift */,
 				CA27B09D28FF6FD2007754FF /* Assets.xcassets */,
 				CA30AE2F2986C75D0041E74B /* icon02.png */,
@@ -152,6 +155,7 @@
 				CA30AE302986C75D0041E74B /* icon02.png in Resources */,
 				CA27B0A128FF6FD2007754FF /* Preview Assets.xcassets in Resources */,
 				CA54D91629B3E8A2000C0C36 /* diabetes.json in Resources */,
+				CABABC402B2146940071B39B /* TestScene.sks in Resources */,
 				CA27B09E28FF6FD2007754FF /* Assets.xcassets in Resources */,
 				CACFF70B2982E5E2004CCC49 /* icon.png in Resources */,
 				CA59A0FF2989E6A6002B4237 /* Pomegranate.svg in Resources */,

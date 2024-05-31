@@ -16,6 +16,14 @@ class GameScene: SKScene {
     @AppStorage("LastRed") private var lastRed = 0.0
     @AppStorage("LastGreen") private var lastGreen = 0.43
     @AppStorage("LastBlue") private var lastBlue = 0.83
+    
+    // TODO: this is where you'd put the loading code?
+//    let loadedScene = SKScene(fileNamed: "PhysicsWorld")
+//    guard let userData = userData
+//    let scene = userData["backToScene"] as? SKScene
+//   view.presentScene(scene)
+//    @AppStorage("gameScene") = skscene()
+    
     // vars used for camera gestures
     var initialCenter = CGPoint()
     var startX = CGFloat()
@@ -100,13 +108,20 @@ class GameScene: SKScene {
 //        let defaults = UserDefaults.standard
         timesAppLoaded += 1
         // playview will be mulitiplied by screenMultiply
-        let screenSizeX = 428.0  // dynamically do this later
-        let physicsSize = screenSizeX * controls.physicsEnvScale
-        let cameraOrigin = CGPoint(x: 0, y: 0)  // x was (physicsSize / 2)
-        controls.cameraOrigin = cameraOrigin
-        let physicsZone = CGRect(origin: cameraOrigin, size: CGSize(width: physicsSize, height: physicsSize))
-        // TODO: figure out how to put an outline around edgeLoop
-        physicsBody = SKPhysicsBody(edgeLoopFrom: physicsZone)
+        
+        // TODO: see if scene should be loaded here
+        guard let physicsBody = SKScene(fileNamed: "TestScene2") else {
+            let screenSizeX = 428.0  // dynamically do this later
+            let physicsSize = screenSizeX * controls.physicsEnvScale
+            let cameraOrigin = CGPoint(x: 0, y: 0)  // x was (physicsSize / 2)
+            controls.cameraOrigin = cameraOrigin
+            let physicsZone = CGRect(origin: cameraOrigin,
+                                     size: CGSize(width: physicsSize,
+                                                  height: physicsSize))
+            // TODO: figure out how to put an outline around edgeLoop
+            physicsBody = SKPhysicsBody(edgeLoopFrom: physicsZone)
+            return
+        }
         
         // not using this, keeping in case a use appears
 //        let swipeRight = UISwipeGestureRecognizer(target: self,
@@ -439,7 +454,10 @@ class GameScene: SKScene {
     }
 
     func setBackgroundColor() {
-        backgroundColor = UIColor(red: abs(lastRed - 1.0), green: abs(lastGreen - 1.0), blue: abs(lastBlue - 1.0), alpha: 0.5)
+        backgroundColor = UIColor(red: abs(lastRed - 1.0), 
+                                  green: abs(lastGreen - 1.0),
+                                  blue: abs(lastBlue - 1.0),
+                                  alpha: 0.5)
     }
 
     func handleNonPaintingTouchesBegan(at location: CGPoint) {
@@ -451,7 +469,6 @@ class GameScene: SKScene {
         let selectedNode = touchedNodes[0]
         if selectedNode.zPosition != -5 {
             controls.selectedNode = selectedNode
-
             if controls.removeOn {
                 controls.selectedNode.removeFromParent()
             }
@@ -499,11 +516,15 @@ class GameScene: SKScene {
          The rest of the code appears to be commented out for now, meaning it is not currently being executed. It looks like it creates more feature nodes and uses various types of joints to connect them together.
          */
         // flow is different since it does a row at a time
-        let (data, scaleData) = controls.loadSingleRow()
+        let (_, scaleData) = controls.loadSingleRow()
         // choose random color for row
         let rowColor = Color(red: Double.random(in: 0.0...1.0), green: Double.random(in: 0.0...1.0), blue: Double.random(in: 0.0...1.0))
         
-        let headNode = createFeatureNodeShape(shape: shape, scale: Float(scaleData.Outcome), chosenColor: rowColor, location: location, hasPhysics: true)
+        let headNode = createFeatureNodeShape(shape: shape, 
+                                              scale: Float(scaleData.Outcome),
+                                              chosenColor: rowColor,
+                                              location: location,
+                                              hasPhysics: true)
         addChild(headNode)
         
         let neckNode = createFeatureNodeShape(shape: shape, scale: Float(scaleData.id), chosenColor: rowColor, location: location, hasPhysics: true)
@@ -555,7 +576,7 @@ class GameScene: SKScene {
          The function starts by loading a row of data, choosing a random color for the row, and creating a node for the outcome feature (whether or not the person has diabetes) with a specific color and location. It then creates nodes for each of the other features in the row (ID, pregnancies, glucose level, blood pressure, skin thickness, insulin level, BMI, diabetes pedigree function, and age) and pins them to the previous node using a specific kind of joint. Finally, the last node of the row is set as the lastNode property of the controls object.
          */
         // flow is different since it does a row at a time
-        let (data, scaleData) = controls.loadSingleRow()
+        let (_, scaleData) = controls.loadSingleRow()
         // choose random color for row
         let rowColor = Color(red: Double.random(in: 0.0...1.0), green: Double.random(in: 0.0...1.0), blue: Double.random(in: 0.0...1.0))
 
@@ -618,7 +639,7 @@ class GameScene: SKScene {
          There are some TODO comments in the code that suggest some parts of it are temporary and may need further development or customization. Overall, this code appears to be part of a larger project related to diabetes data analysis and visualization.
          */
         // flow is different since it does a row at a time
-        let (data, scaleData) = controls.loadSingleRow()
+        let (_, scaleData) = controls.loadSingleRow()
         // choose random color for row
         let rowColor = Color(red: Double.random(in: 0.0...1.0), green: Double.random(in: 0.0...1.0), blue: Double.random(in: 0.0...1.0))
 
