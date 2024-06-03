@@ -45,7 +45,7 @@ Draw non-physics objects, creating images in the background of the physics playg
 
 > Physics objects will not collide with paint
 
-![Rectangle physics object screenshot](screenshots/paint_mode.jpeg)
+![Rectangle physics object screenshot](screenshots/paint_mode.png)
 
 #### Pinned mode
 Draw a physics object that is not subject to gravity, which will remain where it is placed.
