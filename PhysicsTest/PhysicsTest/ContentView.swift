@@ -14,8 +14,6 @@ Planned Features
  - Drag method that checks for background layer makes drag very jittery, sometimes objects drop and return to mouse
  - Pour method does not work when there is a background node where touch starts
  - Rectangle height not working when clear & static, physics not applying at one point
- - Clear all can get stuck, when tapping screen after, clear catches up
- - Clear all removes camera node
  
  Interface ideas
  - anything delightful
@@ -91,6 +89,7 @@ struct ContentView: View {
     @State public var removeOn = false
     @State public var pourOn = false
     @State public var isPainting = false
+    @State public var isJumping = false
     @State public var cameraZoom = 1.0
 //    @State public var lastNodeSpeed = 0.0
     
@@ -132,7 +131,8 @@ struct ContentView: View {
         var body: some View {
             HStack {
                 Button(action: jumpLeft) {
-                    Text("Left")
+                    Image(systemName: "arrow.up.left.circle")
+                        .font(.system(size: 35))
                         .padding()
                 }
                 Spacer()
@@ -145,7 +145,8 @@ struct ContentView: View {
                     }
                 )
                 Button(action: jumpRight) {
-                    Text("Right")
+                    Image(systemName: "arrow.up.right.circle")
+                        .font(.system(size: 35))
                         .padding()
                 }
             }

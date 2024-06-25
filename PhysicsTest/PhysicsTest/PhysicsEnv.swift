@@ -302,7 +302,7 @@ class GameScene: SKScene {
         guard let selectedNode = touchedNodes.first else {
             controls.drop = true
             // don't drop if erasing
-            if !controls.removeOn {
+            if !controls.removeOn && controls.drop != false {
                 let newNode = renderNode(location: location, hasPhysics: true, lastRed: lastRed, lastGreen: lastGreen, lastBlue: lastBlue, letterText: controls.letterText)
                 addChild(newNode)
                 controls.lastNode = newNode
